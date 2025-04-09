@@ -1,0 +1,54 @@
+/* PhoneFrame.css */
+.phone-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 80px;
+}
+
+.phone-frame {
+  position: relative;
+  width: 375px;
+  height: 812px;
+  background-color: white;
+  border-radius: 40px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 30px;
+  background-color: #000;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.phone-content {
+  height: 100%;
+  overflow-y: auto;
+  border-radius: 30px;
+}
+
+.phone-home-indicator {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 5px;
+  background-color: #000;
+  border-radius: 3px;
+}
+
+.grocery-app-container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 30px;
+  height: calc(100% - 60px); /* Adjust for notch and home indicator */
+}
