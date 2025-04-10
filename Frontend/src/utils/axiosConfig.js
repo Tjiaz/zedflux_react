@@ -1,18 +1,22 @@
 // frontend/src/utils/axiosConfig.js
 import axios from "axios";
 
+const getBaseURL = () => {
+  if (process.env.NODE_ENV === "production") {
+    return "/api";
+  }
+  return "http://localhost:5000/api";
+};
+
 const axiosInstance = axios.create({
-  baseURL:
-    process.env.NODE_ENV === "production"
-      ? "/api"
-      : "http://localhost:5000/api",
+  baseURL: getBaseURL(),
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Add request interceptor for debugging
+// Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
     console.log("API Request:", config.url);
@@ -24,7 +28,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+// Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {

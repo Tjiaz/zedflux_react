@@ -21,6 +21,7 @@ import AboutUs from "./about/AboutUs";
 import ServicesPage from "./services/ServicesPage"; // Import the ServicesPage component
 import PortfolioPage from "./Portfolio/PortfolioPage";
 import GroceryApp from "./case-studies-details/GroceryApp";
+import ErrorBoundary from "./ErrorBoundary";
 
 const Home = () => (
   <>
@@ -66,22 +67,24 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <Router>
-        <TopBar />
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/portfolio" element={<PortfolioPage />} />
-          <Route path="/case-studies/grocery-app" element={<GroceryApp />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-        <Footer />
-      </Router>
-    </div>
+    <ErrorBoundary>
+      <div className="App">
+        <Router>
+          <TopBar />
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/portfolio" element={<PortfolioPage />} />
+            <Route path="/case-studies/grocery-app" element={<GroceryApp />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+          <Footer />
+        </Router>
+      </div>
+    </ErrorBoundary>
   );
 }
 
