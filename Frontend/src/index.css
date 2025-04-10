@@ -48,9 +48,7 @@ h6 {
   font-family: var(--font-primary);
 }
 
-Preloader
-  --------------------------------------------------------------*/
-  #preloader {
+#preloader {
   position: fixed;
   inset: 0;
   z-index: 999999;
@@ -964,11 +962,6 @@ section {
     left: auto;
   }
 }
-
-/*--------------------------------------------------------------
-# Portfolio Section
---------------------------------------------------------------*/
-/* CaseStudyCarousel.css */
 
 #portfolio {
   padding: 60px 0;
