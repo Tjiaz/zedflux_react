@@ -11,9 +11,13 @@ const parser = new Parser();
 // Configure CORS
 app.use(
   cors({
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
+    origin: [
+      "https://zedflux-react.vercel.app",
+      "https://zedflux-react-cogx17a13-tjiazs-projects.vercel.app",
+      "http://localhost:3000",
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
