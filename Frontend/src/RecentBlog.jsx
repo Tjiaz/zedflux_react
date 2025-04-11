@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { formatDate } from "./utils/dateFormatter";
 
-
 const RecentBlog = () => {
   const [latestPosts, setLatestPosts] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +44,7 @@ const RecentBlog = () => {
         <div className="row gy-4">
           {latestPosts &&
             Object.entries(latestPosts).map(([category, post]) => (
-              <div key={category} className="col-xl-4 col-md-6">
+              <div key={category} className="col-xl-3 col-md-6">
                 <article>
                   <div className="post-img">
                     <img
@@ -53,7 +52,8 @@ const RecentBlog = () => {
                       alt={post.title}
                       className="img-fluid"
                       onError={(e) => {
-                        e.target.src = "/path-to-default-image.jpg"; // Add your default image path
+                        e.target.src =
+                          "http://localhost:5000/public/images/default_image2.png"; // Add your default image path
                       }}
                     />
                   </div>

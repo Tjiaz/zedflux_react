@@ -24,12 +24,14 @@ app.use(
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "../frontend/build")));
+app.use("/public", express.static(path.join(__dirname, "public")));
 
 // Updated RSS Feed URLs with more reliable sources
 const RSS_FEEDS = {
   sports: "https://www.skysports.com/rss/12040",
   politics: "https://feeds.bbci.co.uk/news/politics/rss.xml",
   entertainment: "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml", // Changed to BBC entertainment
+  technologies: "https://feeds.bbci.co.uk/news/technology/rss.xml", // Added BBC Technology feed
 };
 
 // Helper function to parse RSS feed
@@ -59,7 +61,7 @@ app.get("/api/latest-posts", async (req, res) => {
             link: item.link || "#",
             pubDate: item.pubDate || new Date().toISOString(),
             category: category,
-            image: item.enclosure?.url || null,
+            image: item.enclosure?.url || "/public/images/default_image2.png",
             description: item.contentSnippet || "",
           };
         } else {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { formatDate } from "./utils/dateFormatter";
 import defaultImage from "./images/default_image.png";
+import "./index.css";
 
 const BlogPage = () => {
   const [posts, setPosts] = useState([]);
@@ -30,11 +31,6 @@ const BlogPage = () => {
     }
   };
 
-    const handleImageError = (e) => {
-      e.target.src = defaultImage;
-      e.target.onerror = null;
-    };
-
   if (loading) return <div>Loading...</div>;
   // Make sure to render error message as a string
   if (error) return <div>Error: {error}</div>;
@@ -43,19 +39,21 @@ const BlogPage = () => {
     <main id="main">
       <div className="container">
         <div className="category-tabs mb-4">
-          {["sports", "politics", "entertainment"].map((category) => (
-            <button
-              key={category}
-              className={`btn ${
-                activeCategory === category
-                  ? "btn-primary"
-                  : "btn-outline-primary"
-              } me-2`}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category.toUpperCase()}
-            </button>
-          ))}
+          {["sports", "politics", "entertainment", "technologies"].map(
+            (category) => (
+              <button
+                key={category}
+                className={`btn ${
+                  activeCategory === category
+                    ? "btn-primary"
+                    : "btn-outline-primary"
+                } me-2`}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category.toUpperCase()}
+              </button>
+            )
+          )}
         </div>
 
         <div className="row gy-4 posts-list">
@@ -67,7 +65,11 @@ const BlogPage = () => {
                     src={post.image}
                     alt={post.title}
                     className="img-fluid"
-                    onError={handleImageError}
+                    onError={(e) => {
+                      e.target.src =
+                        "http://localhost:5000/public/images/default_image2.png"; // Backend default image path
+                      e.target.onerror = null; // Prevent infinite loop
+                    }}
                   />
                 </div>
 
@@ -82,7 +84,7 @@ const BlogPage = () => {
                 <div className="post-meta">
                   <p className="post-date">
                     <time dateTime={post.pubDate}>
-                      {new Date(post.pubDate).toLocaleDateString()}
+                      {formatDate(post.pubDate, post.category)}
                     </time>
                   </p>
                 </div>
