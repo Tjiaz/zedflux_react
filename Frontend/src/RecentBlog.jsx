@@ -8,15 +8,18 @@ const RecentBlog = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const API_URL =
+    process.env.NODE_ENV === "development"
+      ? process.env.REACT_APP_API_URL_DEV
+      : process.env.REACT_APP_API_URL_PROD;
+
   useEffect(() => {
     fetchLatestPosts();
   }, []);
 
   const fetchLatestPosts = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/api/latest-posts"
-      );
+      const response = await axios.get(`${API_URL}/api/latest-posts`);
       console.log("Latest posts response:", response.data); // Debugging line
       setLatestPosts(response.data);
       setLoading(false);
@@ -52,8 +55,7 @@ const RecentBlog = () => {
                       alt={post.title}
                       className="img-fluid"
                       onError={(e) => {
-                        e.target.src =
-                          "http://localhost:5000/public/images/default_image2.png"; // Add your default image path
+                        e.target.src = `${API_URL}/public/images/default_image2.png`; // Add your default image path
                       }}
                     />
                   </div>

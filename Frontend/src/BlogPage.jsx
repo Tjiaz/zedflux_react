@@ -4,6 +4,11 @@ import { formatDate } from "./utils/dateFormatter";
 import defaultImage from "./images/default_image.png";
 import "./index.css";
 
+const API_URL =
+  process.env.NODE_ENV === "development"
+    ? process.env.REACT_APP_API_URL_DEV
+    : process.env.REACT_APP_API_URL_PROD;
+
 const BlogPage = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,9 +22,7 @@ const BlogPage = () => {
   const fetchCategoryPosts = async (category) => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `http://localhost:5000/api/posts/${category}`
-      );
+      const response = await axios.get(`${API_URL}/api/posts/${category}`);
       setPosts(response.data);
       setLoading(false);
     } catch (err) {
@@ -66,8 +69,7 @@ const BlogPage = () => {
                     alt={post.title}
                     className="img-fluid"
                     onError={(e) => {
-                      e.target.src =
-                        "http://localhost:5000/public/images/default_image2.png"; // Backend default image path
+                      e.target.src = `${API_URL}/public/images/default_image2.png`; // Backend default image path
                       e.target.onerror = null; // Prevent infinite loop
                     }}
                   />
