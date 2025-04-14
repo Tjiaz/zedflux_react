@@ -81,6 +81,9 @@ function App() {
       mirror: false,
     });
 
+    // Call the wake-up function when the app loads
+    wakeUpBackend();
+
     // Clean up the event listener when the component unmounts
     return () => {
       document.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
