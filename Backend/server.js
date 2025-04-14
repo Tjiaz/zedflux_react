@@ -46,6 +46,10 @@ const fetchFeed = async (url) => {
   }
 };
 
+app.get("/", (req, res) => {
+  res.json({ message: "Welcome to Zedflux Technologies" });
+});
+
 // Get latest posts
 app.get("/api/latest-posts", async (req, res) => {
   try {
