@@ -23,6 +23,27 @@ import PortfolioPage from "./Portfolio/PortfolioPage";
 import GroceryApp from "./case-studies-details/GroceryApp";
 import ErrorBoundary from "./ErrorBoundary";
 
+async function wakeUpBackend() {
+  try {
+    console.log("Ateempting to wake up backend");
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL_PROD}/api/health`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(5000),
+      }
+    ); // 5 seconds timeout
+    if (response.ok) {
+      console.log("Backend is awake and responding");
+    } else {
+      console.warn(`Backend responded with status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("Error waking up backend:", error);
+  }
+}
+
 const Home = () => (
   <>
     <Hero />

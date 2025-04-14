@@ -50,6 +50,10 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to Zedflux Technologies" });
 });
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
+
 // Get latest posts
 app.get("/api/latest-posts", async (req, res) => {
   try {
