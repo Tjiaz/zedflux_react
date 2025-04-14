@@ -15,6 +15,7 @@ app.use(
       "https://zedflux-react.vercel.app",
       "https://zedflux-react-cogx17a13-tjiazs-projects.vercel.app",
       "http://localhost:3000",
+      "https://www.zedfluxtechnologies.com/",
     ],
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
