@@ -100,6 +100,7 @@ h6 {
   transition: all 0.5s;
   color: rgba(255, 255, 255, 0.7);
   padding: 0;
+  font-weight: bolder;
 }
 #topbar a {
   color: rgba(255, 255, 255, 0.7);
@@ -120,7 +121,11 @@ h6 {
 @media (max-width: 575px) {
   .topbar .contact-info i NavLink,
   .topbar .contact-info i span {
-    font-size: 13px;
+    font-size: 12px;
+  }
+  .text-nowrap {
+    font-size: smaller;
+    font-weight: bold !important;
   }
 }
 

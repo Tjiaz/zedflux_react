@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./index.css";
 import { Link } from "react-router-dom";
-import mobilee from "./images/mobilee.webp";
-import mobile from "./images/mobile.webp";
+import mobilee from "./images/zedflux.webp";
+import mobile from "./images/zede.png";
 import digital from "./images/digital.webp";
 
 import { fetchData } from "./services_request/api";
@@ -10,11 +10,10 @@ import { fetchData } from "./services_request/api";
 const Portfolio = () => {
   const [activeIndex, setActiveIndex] = React.useState(0);
 
-
   const caseStudies = [
     {
       id: 1,
-      title: "HARRIS TEETER",
+      title: "GROCERY APP",
       subtitle: "A fresh take on online grocery shopping",
       description:
         "How we helped Harris Teeter transform legacy systems, leverage analytics and deliver personalized omnichannel experiences for millions of shoppers?",
@@ -50,7 +49,6 @@ const Portfolio = () => {
   const goToSlide = (index) => {
     setActiveIndex(index);
   };
-
 
   const currentCaseStudy = caseStudies[activeIndex];
 

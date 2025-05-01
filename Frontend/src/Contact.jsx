@@ -1,12 +1,48 @@
-import React from "react";
+import React, { useState } from "react";
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [status, setStatus] = useState({
+    loading: false,
+    error: false,
+    success: false,
+    message: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const response = await fetch("http://localhost:5000/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const result = await response.json();
+    alert(result.message);
+
+    setFormData({
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    });
+  };
+
   return (
     <section id="contact" class="contact">
       <div className="container" data-aos="fade-up">
         <div className="section-header">
           <h2>Let’s talk business.</h2>
-          
         </div>
 
         <div className="row gx-lg-0 gy-4">
@@ -46,12 +82,7 @@ const Contact = () => {
           </div>
 
           <div className="col-lg-8">
-            <form
-              action="forms/contact.php"
-              method="post"
-              role="form"
-              className="php-email-form"
-            >
+            <form onSubmit={handleSubmit} className="php-email-form">
               <div className="row">
                 <div className="col-md-6 form-group">
                   <input
@@ -61,6 +92,8 @@ const Contact = () => {
                     id="name"
                     placeholder="Your Name"
                     required
+                    value={formData.name}
+                    onChange={handleChange}
                   />
                 </div>
                 <div className="col-md-6 form-group mt-3 mt-md-0">
@@ -70,7 +103,9 @@ const Contact = () => {
                     name="email"
                     id="email"
                     placeholder="Your Email"
+                    value={formData.email}
                     required
+                    onChange={handleChange}
                   />
                 </div>
               </div>
@@ -82,6 +117,8 @@ const Contact = () => {
                   id="subject"
                   placeholder="Subject"
                   required
+                  value={formData.subject}
+                  onChange={handleChange}
                 />
               </div>
               <div className="form-group mt-3">
@@ -91,17 +128,24 @@ const Contact = () => {
                   rows="7"
                   placeholder="Message"
                   required
+                  value={formData.message}
+                  onChange={handleChange}
                 ></textarea>
               </div>
+
               <div className="my-3">
-                <div className="loading">Loading</div>
-                <div className="error-message"></div>
-                <div className="sent-message">
-                  Your message has been sent. Thank you!
-                </div>
+                {status.loading && <div className="loading">Loading</div>}
+                {status.error && (
+                  <div className="error-message">{status.message}</div>
+                )}
+                {status.success && (
+                  <div className="sent-message">{status.message}</div>
+                )}
               </div>
               <div className="text-center">
-                <button type="submit">Send Message</button>
+                <button type="submit" disabled={status.loading}>
+                  Send Message
+                </button>
               </div>
             </form>
           </div>

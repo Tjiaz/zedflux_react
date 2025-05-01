@@ -7,6 +7,19 @@ const path = require("path");
 
 const app = express();
 const parser = new Parser();
+const mysql = require("mysql2");
+
+//create connection to mysql database
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10, // Allows multiple connections
+  queueLimit: 0,
+});
 
 // Configure CORS
 app.use(
@@ -117,6 +130,27 @@ app.get("/api/posts/:category", async (req, res) => {
     console.error("Error fetching category posts:", error);
     res.status(500).json({ message: "Failed to fetch category posts" });
   }
+});
+
+app.post("/api/contact", (req, res) => {
+  const { name, email, subject, message } = req.body;
+
+  if (!name || !email || !subject || !message) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  const query =
+    "INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)";
+  db.query(query, [name, email, subject, message], (err, result) => {
+    if (err) {
+      console.error("Database insertion error:", err);
+      return res
+        .status(500)
+        .json({ error: "Failed to save contact information" });
+    }
+
+    res.json({ message: "Message sent successfully!" });
+  });
 });
 
 const PORT = process.env.PORT || 5000;

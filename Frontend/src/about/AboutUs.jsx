@@ -25,7 +25,7 @@ const AboutUs = () => {
   return (
     <section id="about" className="about">
       <div className="container" data-aos="fade-up">
-        <div className="section-header">
+        <div className="section-header text-center mb-4">
           <h2>Empower Growth</h2>
           <p>
             We are a team of passionate individuals dedicated to delivering the
@@ -96,16 +96,20 @@ const AboutUs = () => {
       <section id="partners" className="partners">
         <div className="container" data-aos="fade-up">
           <div className="section-header">
-            <h2>Our Partners and Alliances</h2>
-            <p>
-              We collaborate with both local and international organizations to
-              expand our expertise and create transformative solutions that
-              positively impact businesses and customers alike.
-            </p>
-            <Clients />
-            <Counter />
-            <Testimonials />
+            <div className="row">
+              <div className="col-12 col-md-8 offset-md-2">
+                <h2 className="text-center">Our Partners and Alliances</h2>
+                <p>
+                  We collaborate with both local and international organizations
+                  to expand our expertise and create transformative solutions
+                  that positively impact businesses and customers alike.
+                </p>
+              </div>
+            </div>
           </div>
+          <Clients />
+          <Counter />
+          <Testimonials />
         </div>
       </section>
     </section>

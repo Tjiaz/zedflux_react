@@ -1,11 +1,13 @@
 import React from "react";
 import ServiceItem from "./ServicesItem"; // Import the ServiceItem component
 import { Container, Row, Col } from "react-bootstrap";
+import "./services.css";
 
 const Services = () => {
   const serviceItems = [
     {
       title: "Data Analytics",
+      images: "/services/data-analytics.webp",
       description:
         "Harness the power of your data with rare, proven and result-driven analytics expertise",
       services: [
@@ -29,6 +31,7 @@ const Services = () => {
     },
     {
       title: "Software Engineering",
+      images: "/services/software.webp",
       description:
         "Premium-quality engineering to build future-proof products, platforms and solutions",
       services: [
@@ -57,6 +60,7 @@ const Services = () => {
     },
     {
       title: "Generative AI",
+      images: "/services/generative-ai.webp",
       description:
         "Build your own AI models and apps like ChatGPT for next-level growth",
       services: [
@@ -85,6 +89,7 @@ const Services = () => {
     },
     {
       title: "Digital Transformation",
+      images: "/services/digitial_transformation.webp",
       description:
         "Invent the digital future - reduce costs, grow sales and improve customer experiences",
       services: [
@@ -108,6 +113,7 @@ const Services = () => {
     },
     {
       title: "Experience Design",
+      images: "/services/experience design.webp",
       description:
         "Create simple and engaging digital experiences that delight customers and fuel growth",
       services: [
@@ -131,6 +137,7 @@ const Services = () => {
     },
     {
       title: "Digital Strategy",
+      images: "/services/digital-strategy.webp",
       description:
         "Top-notch business, product and technology consulting - from inception to impact",
       services: [
@@ -144,22 +151,8 @@ const Services = () => {
           description:
             "Data and tech audits, opportunity assessments, and tailored suggestions",
         },
-        {
-          name: "Innovation Lab",
-          description:
-            "Quickly build new tech and ideas. We offer continuous innovation as a service to our enterprise clients to test new tech, analyze data, run experiments, and invent new growth opportunities in a matter of weeks.",
-        },
       ],
       cta: "Explore our strategy services",
-    },
-    {
-      title: "Team Augmentation",
-      description: "Hire experts to accelerate delivery",
-      services: [
-        {
-          name: "Need help to hit a critical deadline or deliver a kick-ass product? We can augment your team with cutting-edge skills at the right time and on the right scale.",
-        },
-      ],
     },
   ];
 
@@ -186,6 +179,11 @@ const Services = () => {
         {serviceItems.map((section, index) => (
           <section key={index} className="service-section">
             <Row>
+              <img
+                src={section.images}
+                alt={section.title}
+                className="service-image"
+              />
               <h2>{section.title}</h2>
               <p className="section-description">{section.description}</p>
               <Col md={4}>

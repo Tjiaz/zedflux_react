@@ -109,6 +109,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
                 }
+                onClick={() => setMobileNavActive(false)} //CLose mobile nav
               >
                 About
               </NavLink>
@@ -119,6 +120,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
                 }
+                onClick={() => setMobileNavActive(false)} //CLose mobile nav
               >
                 Services
               </NavLink>
@@ -129,6 +131,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
                 }
+                onClick={() => setMobileNavActive(false)} //CLose mobile nav
               >
                 Portfolio
               </NavLink>
@@ -140,6 +143,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
                 }
+                onClick={() => setMobileNavActive(false)} //CLose mobile nav
               >
                 Blog
               </NavLink>
@@ -151,6 +155,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
                 }
+                onClick={() => setMobileNavActive(false)} //CLose mobile nav
               >
                 Contact
               </NavLink>
