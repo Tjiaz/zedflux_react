@@ -4,6 +4,8 @@ const express = require("express");
 const cors = require("cors");
 const Parser = require("rss-parser");
 const path = require("path");
+const cheerio = require("cheerio");
+const axios = require("axios");
 
 const app = express();
 const parser = new Parser();
@@ -69,12 +71,18 @@ app.get("/api/latest-posts", async (req, res) => {
 
         if (feed && feed.items && feed.items.length > 0) {
           const item = feed.items[0];
+          // Add this block to match the category posts logic
+          let imageUrl = item.enclosure?.url;
+          if (!imageUrl) {
+            imageUrl = await fetchImageFromHtml(item.link);
+          }
+
           latestPosts[category] = {
             title: item.title || "No title available",
             link: item.link || "#",
             pubDate: item.pubDate || new Date().toISOString(),
             category: category,
-            image: item.enclosure?.url || "/public/images/default_image2.png",
+            image: imageUrl || "/public/images/default_image2.png",
             description: item.contentSnippet || "",
           };
         } else {
@@ -100,6 +108,42 @@ app.get("/api/latest-posts", async (req, res) => {
   }
 });
 
+// Function to fetch image from URL
+const fetchImageFromHtml = async (articleUrl) => {
+  try {
+    const response = await axios.get(articleUrl, {
+      timeout: 3000,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+    });
+    const html = response.data;
+    const $ = cheerio.load(html);
+
+    // Try multiple common image selectors
+    const selectors = [
+      'meta[property="og:image"]',
+      'meta[name="twitter:image"]',
+      'img[class*="main"]',
+      'img[class*="article"]',
+      'img[class*="featured"]',
+      "img:first",
+    ];
+
+    for (const selector of selectors) {
+      const imageUrl = $(selector).attr("content") || $(selector).attr("src");
+      if (imageUrl && imageUrl.startsWith("http")) {
+        return imageUrl;
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Error fetching image from ${articleUrl}:`, error);
+    return null;
+  }
+};
 // Get category posts
 app.get("/api/posts/:category", async (req, res) => {
   try {
@@ -116,14 +160,23 @@ app.get("/api/posts/:category", async (req, res) => {
       return res.status(404).json({ message: "Feed not available" });
     }
 
-    const posts = feed.items.map((item) => ({
-      title: item.title || "No title available",
-      link: item.link || "#",
-      pubDate: item.pubDate || new Date().toISOString(),
-      category: category,
-      image: item.enclosure?.url || null,
-      description: item.contentSnippet || "",
-    }));
+    const postsPromises = feed.items.map(async (item) => {
+      let imageUrl = item.enclosure?.url; // Check RSS enclosure first
+      if (!imageUrl) {
+        imageUrl = await fetchImageFromHtml(item.link); // Fetch from HTML if needed
+      }
+
+      return {
+        title: item.title || "No title available",
+        link: item.link || "#",
+        pubDate: item.pubDate || new Date().toISOString(),
+        category: category,
+        image: imageUrl || "/public/images/default_image2.png",
+        description: item.contentSnippet || "",
+      };
+    });
+
+    const posts = await Promise.all(postsPromises);
 
     res.json(posts);
   } catch (error) {
