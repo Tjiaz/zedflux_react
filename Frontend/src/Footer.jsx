@@ -36,19 +36,19 @@ const Footer = () => {
             <h4>Useful Links</h4>
             <ul>
               <li>
-                <NavLink to="#">Home</NavLink>
+                <NavLink to="/">Home</NavLink>
               </li>
               <li>
-                <NavLink to="#">About us</NavLink>
+                <NavLink to="/about">About us</NavLink>
               </li>
               <li>
-                <NavLink to="#">Services</NavLink>
+                <NavLink to="/services">Services</NavLink>
               </li>
               <li>
-                <NavLink to="#">Terms of service</NavLink>
+                <NavLink to="/terms">Terms of service</NavLink>
               </li>
               <li>
-                <NavLink to="#">Privacy policy</NavLink>
+                <NavLink to="/privacy">Privacy policy</NavLink>
               </li>
             </ul>
           </div>
@@ -101,7 +101,7 @@ const Footer = () => {
         </div>
       </div>
       <NavLink
-        to="#"
+        to="/"
         className="scroll-top d-flex align-items-center justify-content-center"
       >
         <i className="bi bi-arrow-up-short"></i>

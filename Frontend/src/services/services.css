@@ -197,3 +197,79 @@
   padding: 250px 0;
   color: #fff; /* Adjust text color if needed */
 }
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+  font-family: "Arial, sans-serif";
+}
+.contact-button {
+  background-color: black;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.intro-section {
+  text-align: center;
+  padding: 40px;
+}
+
+.description-section {
+  padding: 20px;
+  line-height: 1.6;
+}
+
+.services-section,
+.customer-stories,
+.contact-section,
+.testimonial-section,
+.footer {
+  padding: 40px 20px;
+}
+
+.services-list,
+.stories-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.service-item,
+.story-item {
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.story-item button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.contact-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.contact-form input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.contact-form button {
+  grid-column: span 2;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}

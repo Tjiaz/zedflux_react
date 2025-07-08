@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { formatDate } from "./utils/dateFormatter";
+import defaultImage from "./images/default_image.png";
 
 const RecentBlog = () => {
   const [latestPosts, setLatestPosts] = useState(null);
@@ -51,11 +52,21 @@ const RecentBlog = () => {
                 <article>
                   <div className="post-img">
                     <img
-                      src={post.image}
+                      src={
+                        post.image?.startsWith("http")
+                          ? post.image
+                          : `${API_URL}/${post.image}`
+                      }
                       alt={post.title}
                       className="img-fluid"
                       onError={(e) => {
-                        e.target.src = `${API_URL}/public/images/default_image2.png`; // Add your default image path
+                        console.log(
+                          "Image load error for:",
+                          post.category,
+                          post.image
+                        );
+                        e.target.src = defaultImage;
+                        e.target.onerror = null;
                       }}
                     />
                   </div>

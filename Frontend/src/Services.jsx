@@ -2,7 +2,10 @@ import React from "react";
 import ServiceItem from "./ServiceItem"; // Import the ServiceItem component
 import { BrowserRouter, NavLink } from "react-router-dom";
 
+
 const Services = () => {
+ 
+
   const serviceItems = [
     {
       icon: "bi bi-laptop",
@@ -88,6 +91,7 @@ const Services = () => {
           </NavLink>
         </div>
       </div>
+      
     </section>
   );
 };

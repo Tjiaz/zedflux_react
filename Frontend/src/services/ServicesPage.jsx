@@ -1,9 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ServiceItem from "./ServicesItem"; // Import the ServiceItem component
 import { Container, Row, Col } from "react-bootstrap";
 import "./services.css";
+import Modal from "../modals/Modal"; // Import the Modal component
+import { Link } from "react-router-dom";
 
 const Services = () => {
+  const [showModal, setShowModal] = React.useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(setShowModal(true), 1000); // 120,000 milliseconds = 2 minutes
+    return () => clearTimeout(timer);
+  }, []);
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
   const serviceItems = [
     {
       title: "Data Analytics",
@@ -28,6 +40,7 @@ const Services = () => {
         },
       ],
       cta: "Explore data analytics services",
+      link: "/data-services-details",
     },
     {
       title: "Software Engineering",
@@ -197,9 +210,9 @@ const Services = () => {
                 {section.description2 && (
                   <p className="section-description">{section.description2}</p>
                 )}
-                <a href="#" className="cta-link">
+                <Link to={section.link} className="cta-link">
                   {section.cta} &gt;
-                </a>
+                </Link>
               </Col>
               <Col md={8}>
                 <Row>
@@ -216,6 +229,7 @@ const Services = () => {
           </section>
         ))}
       </Container>
+      {showModal && <Modal onClose={closeModal} />}
     </div>
   );
 };

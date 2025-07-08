@@ -17,22 +17,36 @@ const BlogPage = () => {
 
   useEffect(() => {
     fetchCategoryPosts(activeCategory);
+    console.log("posts:", posts);
   }, [activeCategory]);
 
   const fetchCategoryPosts = async (category) => {
     try {
       setLoading(true);
+      console.log(`Fetching posts for ${category}`); // Debug log
       const response = await axios.get(`${API_URL}/api/posts/${category}`);
-      setPosts(response.data);
+      console.log(`${category} posts response:`, response.data); // Debug response
+
+      const processedPosts = response.data.map((post) => ({
+        ...post,
+        image: post.image?.startsWith("http")
+          ? post.image
+          : `${API_URL}${post.image.startsWith("/") ? "" : "/"}${post.image}`,
+      }));
+
+      setPosts(processedPosts);
       setLoading(false);
     } catch (err) {
-      // Extract error message properly
+      console.error(`Error fetching ${category} posts:`, err); // Detailed error log
       setError(
         err.response?.data?.message || err.message || "Failed to fetch posts"
       );
       setLoading(false);
+      setPosts([]); // Explicitly set empty array on error
     }
   };
+
+  console.log(fetchCategoryPosts);
 
   if (loading) return <div>Loading...</div>;
   // Make sure to render error message as a string
@@ -41,7 +55,7 @@ const BlogPage = () => {
   return (
     <main id="main">
       <div className="container">
-        <div className="category-tabs mb-4">
+        <div className="category-tabs m-4">
           {["sports", "politics", "entertainment", "technologies"].map(
             (category) => (
               <button
@@ -65,12 +79,12 @@ const BlogPage = () => {
               <article>
                 <div className="post-img">
                   <img
-                    src={post.image}
+                    src={post.image || defaultImage}
                     alt={post.title}
                     className="img-fluid"
                     onError={(e) => {
-                      e.target.src = `${API_URL}/public/images/default_image2.png`; // Backend default image path
-                      e.target.onerror = null; // Prevent infinite loop
+                      e.target.src = defaultImage;
+                      e.target.onerror = null;
                     }}
                   />
                 </div>

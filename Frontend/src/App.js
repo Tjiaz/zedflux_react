@@ -22,6 +22,7 @@ import ServicesPage from "./services/ServicesPage"; // Import the ServicesPage c
 import PortfolioPage from "./Portfolio/PortfolioPage";
 import GroceryApp from "./case-studies-details/GroceryApp";
 import ErrorBoundary from "./ErrorBoundary";
+import DataServiceDetails from "./services/Dataservices_details";
 
 const Home = () => (
   <>
@@ -80,6 +81,10 @@ function App() {
             <Route path="/portfolio" element={<PortfolioPage />} />
             <Route path="/case-studies/grocery-app" element={<GroceryApp />} />
             <Route path="/contact" element={<Contact />} />
+            <Route
+              path="/data-services-details"
+              element={<DataServiceDetails />}
+            />
           </Routes>
           <Footer />
         </Router>
