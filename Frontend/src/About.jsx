@@ -109,7 +109,7 @@ const About = () => {
                         background: "#000",
                       }}
                     >
-                      <source src="assets/img/zedc...mp4" type="video/mp4" />
+                      <source src="assets/img/zedcc...mp4" type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
                   </div>
