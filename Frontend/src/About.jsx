@@ -16,6 +16,13 @@ const About = () => {
     }, 100); // Ensure video is rendered before play
   };
 
+  const handleVideoEnd = () => {
+    setIsPlaying(false);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+    }
+  };
+
   return (
     <section id="about" className="about">
       <div className="container" data-aos="fade-up">
@@ -77,24 +84,35 @@ const About = () => {
                 )}
                 {/* Show video when playing */}
                 {isPlaying && (
-                  <video
-                    ref={videoRef}
-                    controls
+                  <div
                     style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
+                      position: "relative",
                       width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
+                      paddingBottom: "56.25%", // 16:9 aspect ratio (for 1920x1080)
                       borderRadius: "12px",
-                      zIndex: 2,
-                      background: "#000",
+                      overflow: "hidden",
                     }}
                   >
-                    <source src="assets/img/zed...mp4" type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
+                    <video
+                      ref={videoRef}
+                      controls
+                      autoPlay
+                      onEnded={handleVideoEnd}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        zIndex: 2,
+                        background: "#000",
+                      }}
+                    >
+                      <source src="assets/img/zedc...mp4" type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
                 )}
 
                 <NavLink
