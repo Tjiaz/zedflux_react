@@ -92,14 +92,27 @@ const RecentBlog = () => {
   }
 
   // Get valid posts (max 4)
+  // Priority order: technologies, ai-ml, software-dev, digital-innovation, cloud-devops
+  const priorityOrder = ['technologies', 'ai-ml', 'software-dev', 'digital-innovation', 'cloud-devops'];
+  
   const validPosts = latestPosts 
     ? Object.entries(latestPosts)
         .filter(([category, post]) => 
           post && 
           post.title && 
-          post.title !== "Content temporarily unavailable" &&
+          post.title !== "Content temporarily unavailable" && 
           post.pubDate
         )
+        .sort(([catA], [catB]) => {
+          // Sort by priority order
+          const indexA = priorityOrder.indexOf(catA);
+          const indexB = priorityOrder.indexOf(catB);
+          // If not in priority list, put at end
+          if (indexA === -1 && indexB === -1) return 0;
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
+        })
         .slice(0, 4)
     : [];
 
