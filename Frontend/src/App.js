@@ -23,6 +23,12 @@ import PortfolioPage from "./Portfolio/PortfolioPage";
 import GroceryApp from "./case-studies-details/GroceryApp";
 import ErrorBoundary from "./ErrorBoundary";
 import DataServiceDetails from "./services/Dataservices_details";
+import SoftwareEngineeringDetails from "./services/SoftwareEngineeringDetails";
+import GenerativeAIDetails from "./services/GenerativeAIDetails";
+import DigitalTransformationDetails from "./services/DigitalTransformationDetails";
+import ExperienceDesignDetails from "./services/ExperienceDesignDetails";
+import DigitalStrategyDetails from "./services/DigitalStrategyDetails";
+import ScrollToTop from "./ScrollToTop";
 
 const Home = () => (
   <>
@@ -71,6 +77,7 @@ function App() {
     <ErrorBoundary>
       <div className="App">
         <Router>
+          <ScrollToTop />
           <TopBar />
           <Navbar />
           <Routes>
@@ -84,6 +91,26 @@ function App() {
             <Route
               path="/data-services-details"
               element={<DataServiceDetails />}
+            />
+            <Route
+              path="/software-engineering-details"
+              element={<SoftwareEngineeringDetails />}
+            />
+            <Route
+              path="/generative-ai-details"
+              element={<GenerativeAIDetails />}
+            />
+            <Route
+              path="/digital-transformation-details"
+              element={<DigitalTransformationDetails />}
+            />
+            <Route
+              path="/experience-design-details"
+              element={<ExperienceDesignDetails />}
+            />
+            <Route
+              path="/digital-strategy-details"
+              element={<DigitalStrategyDetails />}
             />
           </Routes>
           <Footer />

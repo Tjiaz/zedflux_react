@@ -75,7 +75,7 @@ const PortfolioPage = () => {
           potential
         </p>
         <div className="search-bar">
-          <input type="text" placeholder="Q Search" />
+          <input type="text" placeholder="Search success stories..." />
         </div>
       </section>
 

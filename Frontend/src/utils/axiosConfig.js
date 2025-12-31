@@ -10,7 +10,7 @@ const getBaseURL = () => {
 
 const axiosInstance = axios.create({
   baseURL: getBaseURL(),
-  timeout: 10000,
+  timeout: 20000, // Increased timeout for RSS feed processing
   headers: {
     "Content-Type": "application/json",
   },

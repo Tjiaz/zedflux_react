@@ -41,23 +41,36 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.use("/public", express.static(path.join(__dirname, "public")));
 
-// Updated RSS Feed URLs with more reliable sources
+// Technology-focused RSS Feed URLs - Using reliable tech news sources
 const RSS_FEEDS = {
-  sports: "https://www.skysports.com/rss/12040",
-  politics: "https://feeds.bbci.co.uk/news/politics/rss.xml",
-  entertainment: "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml", // Changed to BBC entertainment
-  technologies: "https://feeds.bbci.co.uk/news/technology/rss.xml", // Added BBC Technology feed
+  technologies: "https://feeds.bbci.co.uk/news/technology/rss.xml",
+  "ai-ml": "https://techcrunch.com/tag/artificial-intelligence/feed/",
+  "software-dev": "https://www.theverge.com/rss/index.xml",
+  "digital-innovation": "https://techcrunch.com/feed/",
+  "cloud-devops": "https://aws.amazon.com/blogs/aws/feed/",
 };
 
-// Helper function to parse RSS feed
-const fetchFeed = async (url) => {
-  try {
-    const feed = await parser.parseURL(url);
-    return feed;
-  } catch (error) {
-    console.error(`Error fetching feed from ${url}:`, error);
-    return null;
+// Helper function to parse RSS feed with timeout and retry
+const fetchFeed = async (url, retries = 2) => {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const feed = await Promise.race([
+        parser.parseURL(url),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Feed timeout")), 8000)
+        ),
+      ]);
+      return feed;
+    } catch (error) {
+      console.error(`Error fetching feed from ${url} (attempt ${i + 1}/${retries + 1}):`, error.message);
+      if (i === retries) {
+        return null;
+      }
+      // Wait before retry
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
   }
+  return null;
 };
 
 // Get latest posts
@@ -71,9 +84,9 @@ app.get("/api/latest-posts", async (req, res) => {
 
         if (feed && feed.items && feed.items.length > 0) {
           const item = feed.items[0];
-          // Add this block to match the category posts logic
           let imageUrl = item.enclosure?.url;
-          if (!imageUrl) {
+          // Skip slow image fetching for latest posts to improve performance
+          if (!imageUrl && process.env.NODE_ENV !== "production") {
             imageUrl = await fetchImageFromHtml(item.link);
           }
 
@@ -160,9 +173,14 @@ app.get("/api/posts/:category", async (req, res) => {
       return res.status(404).json({ message: "Feed not available" });
     }
 
-    const postsPromises = feed.items.map(async (item) => {
+    // Limit items to improve performance
+    const itemsToProcess = feed.items.slice(0, 12);
+    
+    const postsPromises = itemsToProcess.map(async (item) => {
       let imageUrl = item.enclosure?.url; // Check RSS enclosure first
-      if (!imageUrl) {
+      // Skip slow image fetching in production to improve response time
+      // Images will fallback to default
+      if (!imageUrl && process.env.NODE_ENV !== "production") {
         imageUrl = await fetchImageFromHtml(item.link); // Fetch from HTML if needed
       }
 
@@ -203,6 +221,68 @@ app.post("/api/contact", (req, res) => {
     }
 
     res.json({ message: "Message sent successfully!" });
+  });
+});
+
+// Service inquiry endpoint
+app.post("/api/service-inquiry", (req, res) => {
+  const { firstName, lastName, workEmail, company, serviceType } = req.body;
+
+  // Validate required fields
+  if (!firstName || !lastName || !workEmail || !company || !serviceType) {
+    return res.status(400).json({ 
+      error: "All fields are required",
+      details: { firstName, lastName, workEmail, company, serviceType }
+    });
+  }
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(workEmail)) {
+    return res.status(400).json({ error: "Invalid email address" });
+  }
+
+  // Create service_inquiries table if it doesn't exist
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS service_inquiries (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      first_name VARCHAR(100) NOT NULL,
+      last_name VARCHAR(100) NOT NULL,
+      work_email VARCHAR(255) NOT NULL,
+      company VARCHAR(255) NOT NULL,
+      service_type VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(createTableQuery, (err) => {
+    if (err) {
+      console.error("Error creating table:", err);
+    }
+
+    // Insert the inquiry
+    const insertQuery = `
+      INSERT INTO service_inquiries (first_name, last_name, work_email, company, service_type) 
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    
+    db.query(
+      insertQuery,
+      [firstName, lastName, workEmail, company, serviceType],
+      (err, result) => {
+        if (err) {
+          console.error("Database insertion error:", err);
+          return res
+            .status(500)
+            .json({ error: "Failed to save service inquiry" });
+        }
+
+        res.json({ 
+          message: "Thank you! We'll be in touch soon.",
+          id: result.insertId 
+        });
+      }
+    );
   });
 });
 

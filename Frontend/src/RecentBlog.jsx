@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "./utils/axiosConfig";
 import { formatDate } from "./utils/dateFormatter";
 import defaultImage from "./images/default_image.png";
 
@@ -9,23 +9,20 @@ const RecentBlog = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const API_URL =
-    process.env.NODE_ENV === "development"
-      ? process.env.REACT_APP_API_URL_DEV
-      : process.env.REACT_APP_API_URL_PROD;
-
   useEffect(() => {
     fetchLatestPosts();
   }, []);
 
   const fetchLatestPosts = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/latest-posts`);
-      console.log("Latest posts response:", response.data); // Debugging line
+      const response = await axiosInstance.get("/latest-posts", {
+        timeout: 15000,
+      });
+      console.log("Latest posts response:", response.data);
       setLatestPosts(response.data);
       setLoading(false);
     } catch (err) {
-      // Extract error message properly
+      console.error("Error fetching latest posts:", err);
       setError(
         err.response?.data?.message || err.message || "Failed to fetch posts"
       );
@@ -55,7 +52,9 @@ const RecentBlog = () => {
                       src={
                         post.image?.startsWith("http")
                           ? post.image
-                          : `${API_URL}/${post.image}`
+                          : post.image?.startsWith("/")
+                          ? post.image
+                          : defaultImage
                       }
                       alt={post.title}
                       className="img-fluid"

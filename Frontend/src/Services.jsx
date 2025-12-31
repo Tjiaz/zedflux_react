@@ -12,18 +12,21 @@ const Services = () => {
       title: "Digital Transformation",
       description:
         "We provide end-to-end solutions including mobile app development, game development, website creation, app testing, and ongoing maintenance to drive your digital growth.",
+      link: "/digital-transformation-details",
     },
     {
       icon: "bi bi-bar-chart",
       title: "Data Analytics & AI",
       description:
         "Leverage advanced data analytics and AI-driven insights to make informed decisions and enhance your business performance.",
+      link: "/data-services-details",
     },
     {
       icon: "bi bi-chat-square-text",
       title: "Business Intelligence",
       description:
         "Our team of experts delivers high-quality Android and iOS game development tailored to your business needs.",
+      link: "/digital-strategy-details",
     },
   ];
 
@@ -57,6 +60,7 @@ const Services = () => {
               icon={item.icon}
               title={item.title}
               description={item.description}
+              link={item.link}
             />
           ))}
         </div>

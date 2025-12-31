@@ -29,13 +29,14 @@ const heroFeatures = [
   },
 ];
 
+// Shortened service names to prevent overlap with hero image
 const heroServices = [
-  "Mobile Apps",
-  "Business Building",
-  "AI Intelligence",
-  "Digital Marketing",
-  "Software Devops",
-  "IT Training",
+  "Data Analytics & AI",
+  "Software Engineering",
+  "Generative AI",
+  "Digital Transformation",
+  "Experience Design",
+  "Digital Strategy",
 ];
 
 const Hero = () => {
@@ -68,18 +69,19 @@ const Hero = () => {
       <div className="container position-relative">
         <div className="row gy-5" data-aos="fade-in">
           <div className="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center text-center text-lg-start">
-            <h2>
+            <h2 className="hero-title">
               We Provide{" "}
-              <span className="dynamic-service text-nowrap">
+              <br className="d-lg-none" />
+              <span className="dynamic-service">
                 {heroServices[currentServiceIndex]}
               </span>
             </h2>
             <p className="dynamic-description">
-              Craft exceptional IT solutions by designing, developing, and
-              providing them through the web.
+              End-to-end partner to build, scale, and transform businesses with
+              technology. Innovative IT solutions through data, design, and development.
             </p>
             <div className="hero-cta d-flex justify-content-center justify-content-lg-start">
-              <NavLink to="#about" className="btn-get-started">
+              <NavLink to="/about" className="btn-get-started">
                 Learn More
               </NavLink>
               <NavLink

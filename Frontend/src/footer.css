@@ -1,0 +1,220 @@
+/* Footer Styles */
+.footer {
+  background-color: var(--color-primary, #174d90);
+  color: #fff;
+  padding: 60px 0 20px;
+  position: relative;
+}
+
+.footer .footer-info .logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  transition: opacity 0.3s ease;
+}
+
+.footer .footer-info .logo:hover {
+  opacity: 0.8;
+}
+
+.footer .footer-info .logo img {
+  margin-right: 10px;
+}
+
+.footer .footer-info p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.footer .social-links {
+  gap: 12px;
+}
+
+.footer .social-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 18px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.footer .social-links a:hover {
+  background: var(--color-primary, #174d90);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(23, 77, 144, 0.4);
+}
+
+.footer .social-links a.twitter:hover {
+  background: #1da1f2;
+}
+
+.footer .social-links a.facebook:hover {
+  background: #1877f2;
+}
+
+.footer .social-links a.instagram:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
+
+.footer .social-links a.linkedin:hover {
+  background: #0077b5;
+}
+
+.footer h4 {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer .footer-links {
+  margin-bottom: 30px;
+}
+
+.footer .footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer .footer-links ul li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.footer .footer-links ul li:last-child {
+  border-bottom: none;
+}
+
+.footer .footer-links ul a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+  position: relative;
+  padding-left: 0;
+}
+
+.footer .footer-links ul a::before {
+  content: "→";
+  position: absolute;
+  left: -20px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  color: var(--color-primary, #174d90);
+}
+
+.footer .footer-links ul a:hover {
+  color: #fff;
+  padding-left: 20px;
+}
+
+.footer .footer-links ul a:hover::before {
+  opacity: 1;
+  left: 0;
+}
+
+.footer .footer-contact {
+  margin-bottom: 30px;
+}
+
+.footer .footer-contact p {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 2;
+  margin: 0;
+}
+
+.footer .footer-contact a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer .footer-contact a:hover {
+  color: var(--color-primary, #174d90);
+  text-decoration: underline;
+}
+
+.footer .copyright {
+  text-align: center;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.footer .copyright strong {
+  color: #fff;
+}
+
+.scroll-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  background: var(--color-primary, #174d90);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 20px rgba(23, 77, 144, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.scroll-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scroll-top:hover {
+  background: var(--color-secondary, #7886a6);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 25px rgba(23, 77, 144, 0.6);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 0 20px;
+  }
+
+  .footer .footer-info,
+  .footer .footer-links,
+  .footer .footer-contact {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .footer .footer-contact {
+    text-align: center !important;
+  }
+
+  .scroll-top {
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
+}

@@ -4,6 +4,7 @@ import { Container, Row, Col } from "react-bootstrap";
 import "./services.css";
 import Modal from "../modals/Modal"; // Import the Modal component
 import { Link } from "react-router-dom";
+import ServiceImage from "./ServiceImage";
 
 const Services = () => {
   const [showModal, setShowModal] = React.useState(false);
@@ -69,7 +70,8 @@ const Services = () => {
             "ERP, CRM, eCommerce and other system integrations and customizations",
         },
       ],
-      cta: "Learn more",
+      cta: "Explore software engineering services",
+      link: "/software-engineering-details",
     },
     {
       title: "Generative AI",
@@ -99,6 +101,7 @@ const Services = () => {
         },
       ],
       cta: "Explore generative AI services",
+      link: "/generative-ai-details",
     },
     {
       title: "Digital Transformation",
@@ -123,6 +126,7 @@ const Services = () => {
         },
       ],
       cta: "Explore transformation services",
+      link: "/digital-transformation-details",
     },
     {
       title: "Experience Design",
@@ -147,6 +151,7 @@ const Services = () => {
         },
       ],
       cta: "Explore our design services",
+      link: "/experience-design-details",
     },
     {
       title: "Digital Strategy",
@@ -166,6 +171,7 @@ const Services = () => {
         },
       ],
       cta: "Explore our strategy services",
+      link: "/digital-strategy-details",
     },
   ];
 
@@ -192,13 +198,20 @@ const Services = () => {
         {serviceItems.map((section, index) => (
           <section key={index} className="service-section">
             <Row>
-              <img
-                src={section.images}
-                alt={section.title}
-                className="service-image"
-              />
-              <h2>{section.title}</h2>
-              <p className="section-description">{section.description}</p>
+              <Col md={3}>
+                <ServiceImage
+                  src={section.images}
+                  alt={section.title}
+                  title={section.title}
+                  className="service-image"
+                />
+              </Col>
+              <Col md={9}>
+                <h2>{section.title}</h2>
+                <p className="section-description">{section.description}</p>
+              </Col>
+            </Row>
+            <Row className="mt-4">
               <Col md={4}>
                 {section.testimonial && (
                   <div className="testimonial">
@@ -210,9 +223,11 @@ const Services = () => {
                 {section.description2 && (
                   <p className="section-description">{section.description2}</p>
                 )}
-                <Link to={section.link} className="cta-link">
-                  {section.cta} &gt;
-                </Link>
+                {section.link && (
+                  <Link to={section.link} className="cta-link">
+                    {section.cta} &gt;
+                  </Link>
+                )}
               </Col>
               <Col md={8}>
                 <Row>

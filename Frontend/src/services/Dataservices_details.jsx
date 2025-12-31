@@ -1,5 +1,6 @@
 import React from "react";
 import "./services.css";
+import ServiceInquiryForm from "./ServiceInquiryForm";
 
 const Dataservices_details = () => {
   return (
@@ -106,16 +107,7 @@ const Dataservices_details = () => {
           </div>
         </section>
 
-        <section className="contact-section">
-          <h2>Endless possibilities that are hidden in your data</h2>
-          <form className="contact-form">
-            <input type="text" placeholder="First Name" />
-            <input type="text" placeholder="Last Name" />
-            <input type="email" placeholder="Work Email" />
-            <input type="text" placeholder="Company" />
-            <button type="submit">Submit</button>
-          </form>
-        </section>
+        <ServiceInquiryForm serviceType="Data Analytics" />
 
         <section className="testimonial-section">
           <p>Zedflux is our exclusive data and analytics partner...</p>
