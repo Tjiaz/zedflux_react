@@ -25,14 +25,38 @@ const BlogPage = () => {
         timeout: 15000, // 15 second timeout
       });
 
-      const processedPosts = response.data.map((post) => ({
-        ...post,
-        image: post.image?.startsWith("http")
-          ? post.image
-          : post.image?.startsWith("/")
-          ? post.image
-          : defaultImage,
-      }));
+      // Validate response.data is an array
+      if (!response || !response.data) {
+        throw new Error("Invalid response from server");
+      }
+
+      let postsData = response.data;
+      
+      // Handle if response.data is not an array
+      if (!Array.isArray(postsData)) {
+        console.warn("Response data is not an array:", postsData);
+        // If it's an object with a message, it might be an error
+        if (postsData.message) {
+          throw new Error(postsData.message);
+        }
+        // If it's an object, try to convert it
+        postsData = Object.values(postsData);
+        // If still not an array, set to empty array
+        if (!Array.isArray(postsData)) {
+          postsData = [];
+        }
+      }
+
+      const processedPosts = postsData
+        .filter(post => post && post.title) // Filter out invalid posts
+        .map((post) => ({
+          ...post,
+          image: post.image?.startsWith("http")
+            ? post.image
+            : post.image?.startsWith("/")
+            ? post.image
+            : defaultImage,
+        }));
 
       setPosts(processedPosts);
       setLoading(false);
