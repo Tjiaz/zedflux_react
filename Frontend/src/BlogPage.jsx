@@ -86,7 +86,7 @@ const BlogPage = () => {
   return (
     <main id="main">
       <div className="container">
-        <div className="category-tabs m-4">
+        <div className="category-tabs">
           {categories.map((category) => (
             <button
               key={category}
@@ -94,7 +94,7 @@ const BlogPage = () => {
                 activeCategory === category
                   ? "btn-primary"
                   : "btn-outline-primary"
-              } me-2 mb-2`}
+              }`}
               onClick={() => setActiveCategory(category)}
               disabled={loading}
             >

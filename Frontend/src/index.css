@@ -1744,8 +1744,68 @@ section {
 
 .category-tabs {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 8px;
   margin: 20px 0;
+  padding: 0 15px;
+}
+
+.category-tabs .btn {
+  white-space: nowrap;
+  font-size: 14px;
+  padding: 8px 16px;
+  min-width: auto;
+}
+
+/* Mobile responsiveness for category tabs */
+@media (max-width: 768px) {
+  .category-tabs {
+    justify-content: flex-start;
+    gap: 6px;
+    margin: 15px -15px;
+    padding: 0 15px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    flex-wrap: nowrap;
+  }
+  
+  .category-tabs::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .category-tabs::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
+  
+  .category-tabs .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+    flex-shrink: 0;
+    margin: 0;
+  }
+  
+  .category-tabs .me-2 {
+    margin-right: 0 !important;
+  }
+  
+  .category-tabs .mb-2 {
+    margin-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .category-tabs {
+    margin: 10px -15px;
+    padding: 0 10px;
+  }
+  
+  .category-tabs .btn {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
 }
 
 .post-img {
