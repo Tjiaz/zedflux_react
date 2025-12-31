@@ -16,9 +16,8 @@ const API_CONFIG = {
       const url = process.env.REACT_APP_API_URL_PROD.replace(/\/$/, '');
       return url.endsWith('/api') ? url : `${url}/api`;
     }
-    // ⚠️ UPDATE THIS with your actual Render backend URL
-    // Format: https://your-service-name.onrender.com/api
-    return "https://your-backend-service.onrender.com/api";
+    // Production Render backend URL
+    return "https://zedflux-backend.onrender.com/api";
   })(),
 };
 
