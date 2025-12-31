@@ -80,7 +80,7 @@ const RSS_FEEDS = {
   "ai-ml-fallback": "https://www.wired.com/feed/tag/ai/latest/rss", // Alternative AI news
   "software-dev": "https://www.theverge.com/rss/index.xml",
   "digital-innovation": "https://techcrunch.com/feed/", // Primary
-  "digital-innovation-fallback": "https://www.wired.com/feed/rss", // Fallback
+  "digital-innovation-fallback": "https://www.wired.com/feed/rss", // Fallback - different from AI-ML
   "cloud-devops": "https://aws.amazon.com/blogs/aws/feed/",
 };
 
@@ -151,37 +151,63 @@ const fetchFeed = async (url, retries = 3) => {
 app.get("/api/latest-posts", async (req, res) => {
   try {
     const latestPosts = {};
+    
+    // Map categories to their feed URLs (handle fallbacks) - Only include main categories, not fallbacks
+    // Fallback feeds are used internally and won't appear as separate categories
+    const categoryFeedMap = {
+      technologies: ["technologies"],
+      "ai-ml": ["ai-ml", "ai-ml-fallback"], // Try TechCrunch AI first, then Wired AI
+      "software-dev": ["software-dev"],
+      "digital-innovation": ["digital-innovation", "digital-innovation-fallback"], // Try TechCrunch main, then Wired main
+      "cloud-devops": ["cloud-devops"],
+    };
 
-    for (const [category, url] of Object.entries(RSS_FEEDS)) {
-      try {
-        const feed = await fetchFeed(url);
+    for (const [category, feedKeys] of Object.entries(categoryFeedMap)) {
+      let feedSuccess = false;
+      
+      for (const feedKey of feedKeys) {
+        if (feedSuccess) break; // Already got a successful feed for this category
+        
+        const url = RSS_FEEDS[feedKey];
+        if (!url) continue;
+        
+        try {
+          console.log(`Fetching ${category} from ${url}`);
+          const feed = await fetchFeed(url);
 
-        if (feed && feed.items && feed.items.length > 0) {
-          const item = feed.items[0];
-          // Extract image from RSS content (fast, works in production)
-          let imageUrl = extractImageFromRSSContent(item);
-          
-          // Fallback to HTML scraping only in development
-          if (!imageUrl && process.env.NODE_ENV !== "production") {
-            imageUrl = await fetchImageFromHtml(item.link);
+          if (feed && feed.items && feed.items.length > 0) {
+            const item = feed.items[0];
+            // Extract image from RSS content (fast, works in production)
+            let imageUrl = extractImageFromRSSContent(item);
+            
+            // Fallback to HTML scraping only in development
+            if (!imageUrl && process.env.NODE_ENV !== "production") {
+              imageUrl = await fetchImageFromHtml(item.link);
+            }
+
+            // Use placeholder service for default image (works everywhere)
+            const defaultImageUrl = "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
+
+            latestPosts[category] = {
+              title: item.title || "No title available",
+              link: item.link || "#",
+              pubDate: item.pubDate || new Date().toISOString(),
+              category: category, // Use the main category name, not the feed key
+              image: imageUrl || defaultImageUrl,
+              description: item.contentSnippet || "",
+            };
+            feedSuccess = true;
+            console.log(`Successfully fetched ${category} from ${url}`);
           }
-
-          // Use placeholder service for default image (works everywhere)
-          const defaultImageUrl = "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
-
-          latestPosts[category] = {
-            title: item.title || "No title available",
-            link: item.link || "#",
-            pubDate: item.pubDate || new Date().toISOString(),
-            category: category,
-            image: imageUrl || defaultImageUrl,
-            description: item.contentSnippet || "",
-          };
-        } else {
-          throw new Error("No feed items found");
+        } catch (feedError) {
+          console.error(`Error processing ${category} feed from ${url}:`, feedError.message);
+          // Continue to try fallback if available
         }
-      } catch (feedError) {
-        console.error(`Error processing ${category} feed:`, feedError);
+      }
+      
+      // If no feed succeeded, add error entry
+      if (!feedSuccess) {
+        console.error(`All feeds failed for category: ${category}`);
         latestPosts[category] = {
           title: "Content temporarily unavailable",
           link: "#",
