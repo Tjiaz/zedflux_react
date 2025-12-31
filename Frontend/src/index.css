@@ -1760,12 +1760,6 @@ section {
 
 /* Mobile responsiveness for category tabs */
 @media (max-width: 768px) {
-  .container {
-    overflow-x: visible !important;
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-  
   .category-tabs {
     display: flex;
     flex-wrap: nowrap;
@@ -1780,26 +1774,26 @@ section {
     width: calc(100% + 30px);
     max-width: none;
   }
-  
+
   /* Scrollbar styling */
   .category-tabs::-webkit-scrollbar {
     height: 6px;
   }
-  
+
   .category-tabs::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 3px;
   }
-  
+
   .category-tabs::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.3);
     border-radius: 3px;
   }
-  
+
   .category-tabs::-webkit-scrollbar-thumb:hover {
     background-color: rgba(0, 0, 0, 0.5);
   }
-  
+
   .category-tabs .btn {
     font-size: 11px;
     padding: 8px 14px;
@@ -1816,7 +1810,7 @@ section {
     padding: 8px 15px;
     gap: 5px;
   }
-  
+
   .category-tabs .btn {
     font-size: 10px;
     padding: 7px 12px;
@@ -1828,7 +1822,7 @@ section {
   .category-tabs {
     gap: 4px;
   }
-  
+
   .category-tabs .btn {
     font-size: 9px;
     padding: 6px 10px;
@@ -1861,4 +1855,3 @@ section {
 .title a:hover {
   color: #174d90;
 }
-
