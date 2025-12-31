@@ -8,7 +8,16 @@ const cheerio = require("cheerio");
 const axios = require("axios");
 
 const app = express();
-const parser = new Parser();
+// Configure RSS parser with custom fields to extract more image data
+const parser = new Parser({
+  customFields: {
+    item: [
+      ['content:encoded', 'content'],
+      ['media:content', 'media'],
+      ['media:thumbnail', 'thumbnail'],
+    ]
+  }
+});
 const mysql = require("mysql2");
 
 //create connection to mysql database
@@ -107,18 +116,23 @@ app.get("/api/latest-posts", async (req, res) => {
 
         if (feed && feed.items && feed.items.length > 0) {
           const item = feed.items[0];
-          let imageUrl = item.enclosure?.url;
-          // Skip slow image fetching for latest posts to improve performance
+          // Extract image from RSS content (fast, works in production)
+          let imageUrl = extractImageFromRSSContent(item);
+          
+          // Fallback to HTML scraping only in development
           if (!imageUrl && process.env.NODE_ENV !== "production") {
             imageUrl = await fetchImageFromHtml(item.link);
           }
+
+          // Use placeholder service for default image (works everywhere)
+          const defaultImageUrl = "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
 
           latestPosts[category] = {
             title: item.title || "No title available",
             link: item.link || "#",
             pubDate: item.pubDate || new Date().toISOString(),
             category: category,
-            image: imageUrl || "/public/images/default_image2.png",
+            image: imageUrl || defaultImageUrl,
             description: item.contentSnippet || "",
           };
         } else {
@@ -144,7 +158,97 @@ app.get("/api/latest-posts", async (req, res) => {
   }
 });
 
-// Function to fetch image from URL
+// Function to extract image from RSS feed content (fast, works in production)
+const extractImageFromRSSContent = (item) => {
+  try {
+    // Check enclosure first (most reliable)
+    if (item.enclosure?.url) {
+      // Accept any enclosure URL (many feeds use enclosure for images)
+      if (item.enclosure.type?.startsWith('image/') || !item.enclosure.type) {
+        return item.enclosure.url;
+      }
+    }
+
+    // Check media:content (common in many RSS feeds)
+    if (item.media) {
+      if (typeof item.media === 'string') {
+        // If it's a URL string
+        if (item.media.startsWith('http')) return item.media;
+      } else if (item.media.url && item.media.url.startsWith('http')) {
+        return item.media.url;
+      } else if (item.media.$.url && item.media.$.url.startsWith('http')) {
+        return item.media.$.url;
+      }
+    }
+
+    // Check media:thumbnail
+    if (item.thumbnail) {
+      if (typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http')) {
+        return item.thumbnail;
+      } else if (item.thumbnail.url && item.thumbnail.url.startsWith('http')) {
+        return item.thumbnail.url;
+      } else if (item.thumbnail.$.url && item.thumbnail.$.url.startsWith('http')) {
+        return item.thumbnail.$.url;
+      }
+    }
+
+    // Check itunes image
+    if (item.itunes?.image) {
+      return item.itunes.image;
+    }
+
+    // Extract from content/description HTML
+    const contentSources = [
+      item['content:encoded'],
+      item.content,
+      item.contentSnippet,
+      item.description,
+    ];
+
+    for (const content of contentSources) {
+      if (!content) continue;
+      
+      // Try to find img tags in HTML content
+      const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if (imgMatch && imgMatch[1]) {
+        let imgUrl = imgMatch[1];
+        // Convert relative URLs to absolute
+        if (imgUrl.startsWith('//')) {
+          imgUrl = 'https:' + imgUrl;
+        } else if (imgUrl.startsWith('/')) {
+          // Try to get base URL from item.link
+          try {
+            const url = new URL(item.link);
+            imgUrl = url.origin + imgUrl;
+          } catch (e) {
+            continue;
+          }
+        }
+        if (imgUrl.startsWith('http')) {
+          return imgUrl;
+        }
+      }
+
+      // Try to find og:image or twitter:image in meta tags
+      const ogMatch = content.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (ogMatch && ogMatch[1] && ogMatch[1].startsWith('http')) {
+        return ogMatch[1];
+      }
+
+      const twitterMatch = content.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+      if (twitterMatch && twitterMatch[1] && twitterMatch[1].startsWith('http')) {
+        return twitterMatch[1];
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error extracting image from RSS content:', error);
+    return null;
+  }
+};
+
+// Function to fetch image from URL (slower, only for development)
 const fetchImageFromHtml = async (articleUrl) => {
   try {
     const response = await axios.get(articleUrl, {
@@ -199,12 +303,16 @@ app.get("/api/posts/:category", async (req, res) => {
     // Limit items to improve performance
     const itemsToProcess = feed.items.slice(0, 12);
     
+    // Use placeholder service for default image (works everywhere)
+    const defaultImageUrl = "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
+
     const postsPromises = itemsToProcess.map(async (item) => {
-      let imageUrl = item.enclosure?.url; // Check RSS enclosure first
-      // Skip slow image fetching in production to improve response time
-      // Images will fallback to default
+      // Extract image from RSS content (fast, works in production)
+      let imageUrl = extractImageFromRSSContent(item);
+      
+      // Fallback to HTML scraping only in development
       if (!imageUrl && process.env.NODE_ENV !== "production") {
-        imageUrl = await fetchImageFromHtml(item.link); // Fetch from HTML if needed
+        imageUrl = await fetchImageFromHtml(item.link);
       }
 
       return {
@@ -212,7 +320,7 @@ app.get("/api/posts/:category", async (req, res) => {
         link: item.link || "#",
         pubDate: item.pubDate || new Date().toISOString(),
         category: category,
-        image: imageUrl || "/public/images/default_image2.png",
+        image: imageUrl || defaultImageUrl,
         description: item.contentSnippet || "",
       };
     });
