@@ -186,14 +186,24 @@ app.get("/api/latest-posts", async (req, res) => {
             }
 
             // Use placeholder service for default image (works everywhere)
-            const defaultImageUrl = "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
+            // Category-specific placeholders
+            const categoryPlaceholders = {
+              'ai-ml': 'https://via.placeholder.com/800x450/0066cc/ffffff?text=AI+%26+ML',
+              'digital-innovation': 'https://via.placeholder.com/800x450/0066cc/ffffff?text=Digital+Innovation',
+            };
+            
+            const defaultImageUrl = categoryPlaceholders[category] || 
+              "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
+
+            // Ensure we always have a valid image URL (never null or empty)
+            const finalImageUrl = (imageUrl && imageUrl.trim() !== '') ? imageUrl : defaultImageUrl;
 
             latestPosts[category] = {
               title: item.title || "No title available",
               link: item.link || "#",
               pubDate: item.pubDate || new Date().toISOString(),
               category: category, // Use the main category name, not the feed key
-              image: imageUrl || defaultImageUrl,
+              image: finalImageUrl, // Always ensure a valid image URL
               description: item.contentSnippet || "",
             };
             feedSuccess = true;
@@ -233,19 +243,28 @@ const extractImageFromRSSContent = (item) => {
     if (item.enclosure?.url) {
       // Accept any enclosure URL (many feeds use enclosure for images)
       if (item.enclosure.type?.startsWith('image/') || !item.enclosure.type) {
-        return item.enclosure.url;
+        const url = item.enclosure.url;
+        if (url && url.trim() !== '' && url.startsWith('http')) {
+          return url;
+        }
       }
     }
 
-    // Check media:content (common in many RSS feeds)
+    // Check media:content (common in many RSS feeds, especially TechCrunch)
     if (item.media) {
       if (typeof item.media === 'string') {
         // If it's a URL string
         if (item.media.startsWith('http')) return item.media;
-      } else if (item.media.url && item.media.url.startsWith('http')) {
+      } else if (item.media.url && typeof item.media.url === 'string' && item.media.url.startsWith('http')) {
         return item.media.url;
-      } else if (item.media.$.url && item.media.$.url.startsWith('http')) {
+      } else if (item.media.$ && item.media.$.url && item.media.$.url.startsWith('http')) {
         return item.media.$.url;
+      } else if (Array.isArray(item.media)) {
+        // Sometimes media is an array
+        for (const mediaItem of item.media) {
+          const url = typeof mediaItem === 'string' ? mediaItem : (mediaItem.url || mediaItem.$?.url);
+          if (url && url.startsWith('http')) return url;
+        }
       }
     }
 
@@ -253,16 +272,19 @@ const extractImageFromRSSContent = (item) => {
     if (item.thumbnail) {
       if (typeof item.thumbnail === 'string' && item.thumbnail.startsWith('http')) {
         return item.thumbnail;
-      } else if (item.thumbnail.url && item.thumbnail.url.startsWith('http')) {
+      } else if (item.thumbnail.url && typeof item.thumbnail.url === 'string' && item.thumbnail.url.startsWith('http')) {
         return item.thumbnail.url;
-      } else if (item.thumbnail.$.url && item.thumbnail.$.url.startsWith('http')) {
+      } else if (item.thumbnail.$ && item.thumbnail.$.url && item.thumbnail.$.url.startsWith('http')) {
         return item.thumbnail.$.url;
       }
     }
 
     // Check itunes image
     if (item.itunes?.image) {
-      return item.itunes.image;
+      const itunesImg = typeof item.itunes.image === 'string' ? item.itunes.image : item.itunes.image.href;
+      if (itunesImg && itunesImg.startsWith('http')) {
+        return itunesImg;
+      }
     }
 
     // Extract from content/description HTML
@@ -394,8 +416,13 @@ app.get("/api/posts/:category", async (req, res) => {
     // Limit items to improve performance
     const itemsToProcess = feed.items.slice(0, 12);
     
-    // Use placeholder service for default image (works everywhere)
-    const defaultImageUrl = "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
+    // Category-specific placeholders
+    const categoryPlaceholders = {
+      'ai-ml': 'https://via.placeholder.com/800x450/0066cc/ffffff?text=AI+%26+ML',
+      'digital-innovation': 'https://via.placeholder.com/800x450/0066cc/ffffff?text=Digital+Innovation',
+    };
+    const defaultImageUrl = categoryPlaceholders[category] || 
+      "https://via.placeholder.com/800x450/0066cc/ffffff?text=Tech+News";
 
     const postsPromises = itemsToProcess.map(async (item) => {
       // Extract image from RSS content (fast, works in production)
@@ -406,12 +433,15 @@ app.get("/api/posts/:category", async (req, res) => {
         imageUrl = await fetchImageFromHtml(item.link);
       }
 
+      // Ensure we always have a valid image URL (never null or empty)
+      const finalImageUrl = (imageUrl && imageUrl.trim() !== '') ? imageUrl : defaultImageUrl;
+
       return {
         title: item.title || "No title available",
         link: item.link || "#",
         pubDate: item.pubDate || new Date().toISOString(),
         category: category,
-        image: imageUrl || defaultImageUrl,
+        image: finalImageUrl, // Always ensure a valid image URL
         description: item.contentSnippet || "",
       };
     });
