@@ -76,30 +76,72 @@ app.use("/public", express.static(path.join(__dirname, "public")));
 // Technology-focused RSS Feed URLs - Using reliable tech news sources
 const RSS_FEEDS = {
   technologies: "https://feeds.bbci.co.uk/news/technology/rss.xml",
-  "ai-ml": "https://techcrunch.com/tag/artificial-intelligence/feed/",
+  "ai-ml": "https://techcrunch.com/tag/artificial-intelligence/feed/", // Primary
+  "ai-ml-fallback": "https://www.wired.com/feed/tag/ai/latest/rss", // Alternative AI news
   "software-dev": "https://www.theverge.com/rss/index.xml",
-  "digital-innovation": "https://techcrunch.com/feed/",
+  "digital-innovation": "https://techcrunch.com/feed/", // Primary
+  "digital-innovation-fallback": "https://www.wired.com/feed/rss", // Fallback
   "cloud-devops": "https://aws.amazon.com/blogs/aws/feed/",
 };
 
 // Helper function to parse RSS feed with timeout and retry
-const fetchFeed = async (url, retries = 2) => {
+const fetchFeed = async (url, retries = 3) => {
   for (let i = 0; i <= retries; i++) {
     try {
-      const feed = await Promise.race([
-        parser.parseURL(url),
+      // Fetch feed with axios first to add headers and better error handling
+      const response = await Promise.race([
+        axios.get(url, {
+          timeout: 12000, // Increased timeout for slower feeds
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/rss+xml, application/xml, text/xml, application/atom+xml, */*',
+          },
+          maxRedirects: 5,
+          validateStatus: function (status) {
+            return status >= 200 && status < 400; // Accept redirects
+          },
+        }),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Feed timeout")), 8000)
+          setTimeout(() => reject(new Error("Feed timeout")), 12000)
         ),
       ]);
+
+      // Check if response is valid
+      if (!response.data) {
+        throw new Error("Empty response from feed");
+      }
+
+      // Parse the XML response
+      const feed = await parser.parseString(response.data);
+      
+      // Validate feed has items
+      if (!feed || !feed.items || feed.items.length === 0) {
+        throw new Error("Feed has no items");
+      }
+      
       return feed;
     } catch (error) {
       console.error(`Error fetching feed from ${url} (attempt ${i + 1}/${retries + 1}):`, error.message);
+      
+      // Try direct parsing as fallback (for feeds that might work with rss-parser directly)
       if (i === retries) {
-        return null;
+        try {
+          console.log(`Attempting direct parse for ${url}`);
+          const feed = await Promise.race([
+            parser.parseURL(url),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Direct parse timeout")), 10000)
+            ),
+          ]);
+          return feed;
+        } catch (directError) {
+          console.error(`Direct parse also failed for ${url}:`, directError.message);
+          return null;
+        }
       }
-      // Wait before retry
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Wait before retry with exponential backoff
+      await new Promise((resolve) => setTimeout(resolve, (i + 1) * 1500));
     }
   }
   return null;
@@ -288,13 +330,36 @@ const fetchImageFromHtml = async (articleUrl) => {
 app.get("/api/posts/:category", async (req, res) => {
   try {
     const { category } = req.params;
-    const url = RSS_FEEDS[category];
-
-    if (!url) {
+    
+    // Handle category mapping and fallbacks
+    const categoryFeedMap = {
+      technologies: ["technologies"],
+      "ai-ml": ["ai-ml", "ai-ml-fallback"],
+      "software-dev": ["software-dev"],
+      "digital-innovation": ["digital-innovation", "digital-innovation-fallback"],
+      "cloud-devops": ["cloud-devops"],
+    };
+    
+    const feedKeys = categoryFeedMap[category];
+    if (!feedKeys) {
       return res.status(404).json({ message: "Category not found" });
     }
-
-    const feed = await fetchFeed(url);
+    
+    let feed = null;
+    for (const feedKey of feedKeys) {
+      const url = RSS_FEEDS[feedKey];
+      if (!url) continue;
+      
+      try {
+        feed = await fetchFeed(url);
+        if (feed && feed.items && feed.items.length > 0) {
+          break; // Success, use this feed
+        }
+      } catch (error) {
+        console.error(`Failed to fetch ${feedKey} for category ${category}:`, error.message);
+        // Continue to try fallback
+      }
+    }
 
     if (!feed || !feed.items) {
       return res.status(404).json({ message: "Feed not available" });
