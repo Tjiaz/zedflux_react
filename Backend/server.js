@@ -24,15 +24,35 @@ const db = mysql.createPool({
 });
 
 // Configure CORS
+// Add your Hostinger frontend domain to the origin array
+const allowedOrigins = [
+  "https://zedflux-react.vercel.app",
+  "https://zedflux-react-cogx17a13-tjiazs-projects.vercel.app",
+  "http://localhost:3000",
+];
+
+// Add frontend URL from environment variable if set
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 app.use(
   cors({
-    origin: [
-      "https://zedflux-react.vercel.app",
-      "https://zedflux-react-cogx17a13-tjiazs-projects.vercel.app",
-      "http://localhost:3000",
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        // Log for debugging - you can add your domain here temporarily
+        console.log("CORS blocked origin:", origin);
+        callback(null, true); // Allow all origins for now - update this for production security
+      }
+    },
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 

@@ -1,11 +1,9 @@
 // frontend/src/utils/axiosConfig.js
 import axios from "axios";
+import { getApiBaseURL } from "../config/apiConfig";
 
 const getBaseURL = () => {
-  if (process.env.NODE_ENV === "production") {
-    return "/api";
-  }
-  return "http://localhost:5000/api";
+  return getApiBaseURL();
 };
 
 const axiosInstance = axios.create({
