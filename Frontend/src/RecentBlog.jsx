@@ -19,7 +19,33 @@ const RecentBlog = () => {
         timeout: 15000,
       });
       console.log("Latest posts response:", response.data);
-      setLatestPosts(response.data);
+      
+      // Process the response - ensure it's an object, not array
+      let processedPosts = {};
+      if (Array.isArray(response.data)) {
+        // If it's an array, take first 4 items and convert to object
+        const validPosts = response.data
+          .filter(post => post && post.title && post.title !== "Content temporarily unavailable")
+          .slice(0, 4);
+        
+        validPosts.forEach((post, index) => {
+          processedPosts[post.category || `category-${index}`] = post;
+        });
+      } else if (typeof response.data === 'object' && response.data !== null) {
+        // If it's already an object, filter and limit to 4
+        const entries = Object.entries(response.data)
+          .filter(([category, post]) => 
+            post && 
+            post.title && 
+            post.title !== "Content temporarily unavailable" &&
+            post.pubDate
+          )
+          .slice(0, 4);
+        
+        processedPosts = Object.fromEntries(entries);
+      }
+      
+      setLatestPosts(processedPosts);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching latest posts:", err);
@@ -27,12 +53,55 @@ const RecentBlog = () => {
         err.response?.data?.message || err.message || "Failed to fetch posts"
       );
       setLoading(false);
+      setLatestPosts({});
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  // Make sure to render error message as a string
-  if (error) return <div>Error: {error}</div>;
+  if (loading) {
+    return (
+      <section>
+        <div className="container" data-aos="fade-up">
+          <div className="section-header">
+            <h2>Latest News</h2>
+            <p>Stay updated with the latest headlines</p>
+          </div>
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section>
+        <div className="container" data-aos="fade-up">
+          <div className="section-header">
+            <h2>Latest News</h2>
+            <p>Stay updated with the latest headlines</p>
+          </div>
+          <div className="alert alert-warning text-center" role="alert">
+            {error}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Get valid posts (max 4)
+  const validPosts = latestPosts 
+    ? Object.entries(latestPosts)
+        .filter(([category, post]) => 
+          post && 
+          post.title && 
+          post.title !== "Content temporarily unavailable" &&
+          post.pubDate
+        )
+        .slice(0, 4)
+    : [];
 
   return (
     <section>
@@ -42,57 +111,73 @@ const RecentBlog = () => {
           <p>Stay updated with the latest headlines</p>
         </div>
 
-        <div className="row gy-4">
-          {latestPosts &&
-            Object.entries(latestPosts).map(([category, post]) => (
-              <div key={category} className="col-xl-3 col-md-6">
-                <article>
-                  <div className="post-img">
-                    <img
-                      src={
-                        post.image?.startsWith("http")
-                          ? post.image
-                          : post.image?.startsWith("/")
-                          ? post.image
-                          : defaultImage
-                      }
-                      alt={post.title}
-                      className="img-fluid"
-                      onError={(e) => {
-                        console.log(
-                          "Image load error for:",
-                          post.category,
-                          post.image
-                        );
-                        e.target.src = defaultImage;
-                        e.target.onerror = null;
-                      }}
-                    />
-                  </div>
+        {validPosts.length === 0 ? (
+          <div className="text-center py-5">
+            <p>No news available at the moment. Please check back later.</p>
+          </div>
+        ) : (
+          <div className="row gy-4">
+            {validPosts.map(([category, post]) => {
+              // Ensure we have valid data
+              if (!post || !post.title || post.title === "Content temporarily unavailable") {
+                return null;
+              }
 
-                  <p className="post-category">{category}</p>
+              // Get image URL
+              let imageUrl = defaultImage;
+              if (post.image) {
+                if (post.image.startsWith("http")) {
+                  imageUrl = post.image;
+                } else if (post.image.startsWith("/")) {
+                  imageUrl = post.image;
+                }
+              }
 
-                  <h2 className="title">
-                    <a
-                      href={post.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {post.title}
-                    </a>
-                  </h2>
+              // Format category name
+              const categoryName = category
+                .replace(/-/g, " ")
+                .replace(/\b\w/g, l => l.toUpperCase());
 
-                  <div className="d-flex align-items-center">
-                    <div className="post-meta">
-                      <p className="post-date">
-                        {formatDate(post.pubDate, category)}
-                      </p>
+              return (
+                <div key={category} className="col-xl-3 col-md-6">
+                  <article>
+                    <div className="post-img">
+                      <img
+                        src={imageUrl}
+                        alt={post.title}
+                        className="img-fluid"
+                        onError={(e) => {
+                          e.target.src = defaultImage;
+                          e.target.onerror = null;
+                        }}
+                      />
                     </div>
-                  </div>
-                </article>
-              </div>
-            ))}
-        </div>
+
+                    <p className="post-category">{categoryName}</p>
+
+                    <h2 className="title">
+                      <a
+                        href={post.link || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {post.title}
+                      </a>
+                    </h2>
+
+                    <div className="d-flex align-items-center">
+                      <div className="post-meta">
+                        <p className="post-date">
+                          {post.pubDate ? formatDate(post.pubDate, category) : "Recently"}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         <div className="text-center mt-4">
           <Link
