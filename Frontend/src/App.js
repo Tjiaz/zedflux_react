@@ -30,7 +30,6 @@ import ExperienceDesignDetails from "./services/ExperienceDesignDetails";
 import DigitalStrategyDetails from "./services/DigitalStrategyDetails";
 import ScrollToTop from "./ScrollToTop";
 import CookieConsent from "./components/CookieConsent";
-import CookiePreferences from "./components/CookiePreferences";
 import CookiePolicy from "./pages/CookiePolicy";
 
 const Home = () => (
@@ -115,7 +114,6 @@ function App() {
               path="/digital-strategy-details"
               element={<DigitalStrategyDetails />}
             />
-            <Route path="/cookie-preferences" element={<CookiePreferences />} />
             <Route path="/cookies" element={<CookiePolicy />} />
           </Routes>
           <CookieConsent />
