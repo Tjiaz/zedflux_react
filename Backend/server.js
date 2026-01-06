@@ -53,6 +53,14 @@ app.use(
     origin: function (origin, callback) {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
+
+      // Allow localhost / 127.0.0.1 on any port for development
+      if (
+        /^http:\/\/localhost:\d+$/.test(origin) ||
+        /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
       
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
@@ -69,6 +77,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.use("/public", express.static(path.join(__dirname, "public")));
@@ -456,23 +465,60 @@ app.get("/api/posts/:category", async (req, res) => {
 });
 
 app.post("/api/contact", (req, res) => {
-  const { name, email, subject, message } = req.body;
+  // Support multiple frontend payload shapes (Contact page, Services/Portfolio CTAs, etc.)
+  const body = req.body || {};
 
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({ error: "All fields are required" });
+  const name =
+    (body.name || "").trim() ||
+    (body.fullName || "").trim() ||
+    `${(body.firstName || "").trim()} ${(body.lastName || "").trim()}`.trim();
+
+  const email = (body.email || "").trim();
+
+  const subject =
+    (body.subject || "").trim() ||
+    "Website Contact";
+
+  const message =
+    (body.message || "").trim() ||
+    (body.projectDescription || "").trim() ||
+    "Contact request submitted from website.";
+
+  if (!name || !email) {
+    return res.status(400).json({ error: "Name and email are required" });
   }
 
-  const query =
-    "INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)";
-  db.query(query, [name, email, subject, message], (err, result) => {
-    if (err) {
-      console.error("Database insertion error:", err);
-      return res
-        .status(500)
-        .json({ error: "Failed to save contact information" });
+  // Create table if missing (keeps local/dev setup working)
+  const createContactsTableQuery = `
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      subject VARCHAR(255) NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(createContactsTableQuery, (tableErr) => {
+    if (tableErr) {
+      console.error("Error creating contacts table:", tableErr);
+      // continue attempt to insert anyway
     }
 
-    res.json({ message: "Message sent successfully!" });
+    const insertQuery =
+      "INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)";
+
+    db.query(insertQuery, [name, email, subject, message], (err, result) => {
+      if (err) {
+        console.error("Database insertion error:", err);
+        return res
+          .status(500)
+          .json({ error: "Failed to save contact information" });
+      }
+
+      res.json({ message: "Message sent successfully!", id: result.insertId });
+    });
   });
 });
 
