@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const Parser = require("rss-parser");
 const path = require("path");
+const fs = require("fs");
 const cheerio = require("cheerio");
 const axios = require("axios");
 
@@ -584,8 +585,224 @@ app.post("/api/service-inquiry", (req, res) => {
   });
 });
 
+// ------------------------------------------------------------
+// Social Auto-post (optional, disabled by default)
+// ------------------------------------------------------------
+
+const AUTOSOCIAL_STATE_PATH = path.join(__dirname, "data", "autopost-state.json");
+
+function ensureAutopostStateDir() {
+  const dir = path.dirname(AUTOSOCIAL_STATE_PATH);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function readAutopostState() {
+  try {
+    ensureAutopostStateDir();
+    if (!fs.existsSync(AUTOSOCIAL_STATE_PATH)) return { categories: {}, lastRunAt: null };
+    const raw = fs.readFileSync(AUTOSOCIAL_STATE_PATH, "utf8");
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error("Failed to read autopost state:", e.message);
+    return { categories: {}, lastRunAt: null, error: e.message };
+  }
+}
+
+function writeAutopostState(state) {
+  try {
+    ensureAutopostStateDir();
+    fs.writeFileSync(AUTOSOCIAL_STATE_PATH, JSON.stringify(state, null, 2), "utf8");
+  } catch (e) {
+    console.error("Failed to write autopost state:", e.message);
+  }
+}
+
+function formatSocialPost({ title, link, category }) {
+  const tagMap = {
+    technologies: ["Tech"],
+    "ai-ml": ["AI", "MachineLearning"],
+    "software-dev": ["SoftwareDevelopment"],
+    "digital-innovation": ["DigitalInnovation"],
+    "cloud-devops": ["Cloud", "DevOps"],
+  };
+  const tags = (tagMap[category] || ["Tech"]).map((t) => `#${t}`).join(" ");
+  return `${title}\n\n${link}\n\n${tags}`;
+}
+
+async function postToX(text) {
+  const token = process.env.X_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN;
+  if (!token) return { ok: false, skipped: true, reason: "Missing X_BEARER_TOKEN" };
+
+  // Twitter/X API v2 endpoint is still api.twitter.com for most apps
+  const url = "https://api.twitter.com/2/tweets";
+  const res = await axios.post(
+    url,
+    { text },
+    { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, timeout: 10000 }
+  );
+  return { ok: true, data: res.data };
+}
+
+async function postToFacebook({ message, link }) {
+  const pageId = process.env.FACEBOOK_PAGE_ID;
+  const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
+  if (!pageId || !accessToken) {
+    return { ok: false, skipped: true, reason: "Missing FACEBOOK_PAGE_ID or FACEBOOK_PAGE_ACCESS_TOKEN" };
+  }
+
+  const url = `https://graph.facebook.com/v19.0/${encodeURIComponent(pageId)}/feed`;
+  const params = new URLSearchParams();
+  params.set("message", message);
+  if (link) params.set("link", link);
+  params.set("access_token", accessToken);
+
+  const res = await axios.post(url, params.toString(), {
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    timeout: 10000,
+  });
+  return { ok: true, data: res.data };
+}
+
+async function runSocialAutopostOnce() {
+  const enabled = String(process.env.SOCIAL_AUTOPOST_ENABLED || "").toLowerCase() === "true";
+  if (!enabled) return { ok: false, skipped: true, reason: "SOCIAL_AUTOPOST_ENABLED is not true" };
+
+  const state = readAutopostState();
+  const nowIso = new Date().toISOString();
+  state.lastRunAt = nowIso;
+  state.categories = state.categories || {};
+
+  const categoriesFromEnv = (process.env.SOCIAL_AUTOPOST_CATEGORIES || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const categories = categoriesFromEnv.length
+    ? categoriesFromEnv
+    : ["technologies", "ai-ml", "software-dev", "digital-innovation", "cloud-devops"];
+
+  // Same mapping logic as /api/latest-posts
+  const categoryFeedMap = {
+    technologies: ["technologies"],
+    "ai-ml": ["ai-ml", "ai-ml-fallback"],
+    "software-dev": ["software-dev"],
+    "digital-innovation": ["digital-innovation", "digital-innovation-fallback"],
+    "cloud-devops": ["cloud-devops"],
+  };
+
+  const results = {};
+
+  for (const category of categories) {
+    const feedKeys = categoryFeedMap[category];
+    if (!feedKeys) {
+      results[category] = { ok: false, skipped: true, reason: "Unknown category" };
+      continue;
+    }
+
+    let latestItem = null;
+    let latestLink = null;
+
+    for (const feedKey of feedKeys) {
+      const url = RSS_FEEDS[feedKey];
+      if (!url) continue;
+      const feed = await fetchFeed(url);
+      if (feed?.items?.length) {
+        latestItem = feed.items[0];
+        latestLink = latestItem.link || latestItem.guid || null;
+        break;
+      }
+    }
+
+    if (!latestItem || !latestLink) {
+      results[category] = { ok: false, skipped: true, reason: "No feed item available" };
+      continue;
+    }
+
+    const lastPostedLink = state.categories?.[category]?.lastPostedLink;
+    if (lastPostedLink === latestLink) {
+      results[category] = { ok: true, skipped: true, reason: "Already posted latest item" };
+      continue;
+    }
+
+    const title = latestItem.title || "New article";
+    const link = latestItem.link || latestLink;
+    const text = formatSocialPost({ title, link, category });
+
+    const platformResults = {};
+    try {
+      platformResults.x = await postToX(text);
+    } catch (e) {
+      platformResults.x = { ok: false, error: e.message };
+    }
+
+    try {
+      platformResults.facebook = await postToFacebook({ message: title, link });
+    } catch (e) {
+      platformResults.facebook = { ok: false, error: e.message };
+    }
+
+    // Only mark as posted if at least one platform succeeded
+    const anyOk = Object.values(platformResults).some((r) => r && r.ok === true);
+    if (anyOk) {
+      state.categories[category] = {
+        lastPostedLink: latestLink,
+        lastPostedTitle: title,
+        lastPostedAt: nowIso,
+        platformResults,
+      };
+      writeAutopostState(state);
+      results[category] = { ok: true, posted: true, latestLink, platformResults };
+    } else {
+      results[category] = { ok: false, posted: false, latestLink, platformResults };
+    }
+  }
+
+  return { ok: true, ranAt: nowIso, results };
+}
+
+app.get("/api/social/autopost/status", (req, res) => {
+  const state = readAutopostState();
+  res.json({
+    enabled: String(process.env.SOCIAL_AUTOPOST_ENABLED || "").toLowerCase() === "true",
+    lastRunAt: state.lastRunAt || null,
+    categories: state.categories || {},
+  });
+});
+
+app.post("/api/social/autopost/run", async (req, res) => {
+  const secret = process.env.SOCIAL_AUTOPOST_SECRET;
+  const provided = req.headers["x-autopost-secret"];
+  if (!secret || provided !== secret) {
+    return res.status(401).json({ ok: false, error: "Unauthorized" });
+  }
+
+  try {
+    const result = await runSocialAutopostOnce();
+    res.json(result);
+  } catch (e) {
+    console.error("Autopost run failed:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log("Environment:", process.env.NODE_ENV);
+
+  // Background scheduler (optional)
+  const enabled = String(process.env.SOCIAL_AUTOPOST_ENABLED || "").toLowerCase() === "true";
+  if (enabled) {
+    const minutes = Number(process.env.SOCIAL_AUTOPOST_INTERVAL_MINUTES || 360);
+    const intervalMs = Math.max(15, minutes) * 60 * 1000;
+    console.log(`Social autopost enabled. Interval: ${Math.max(15, minutes)} minutes`);
+
+    setTimeout(() => {
+      runSocialAutopostOnce().catch((e) => console.error("Autopost error:", e.message));
+    }, 5000);
+
+    setInterval(() => {
+      runSocialAutopostOnce().catch((e) => console.error("Autopost error:", e.message));
+    }, intervalMs);
+  }
 });
