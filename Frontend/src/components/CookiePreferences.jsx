@@ -333,7 +333,8 @@ const CookiePreferences = ({ isOpen, onClose, onSave }) => {
               </div>
 
               <div className="cookie-details-content">
-                {selectedCategory.cookies && selectedCategory.cookies.length > 0 ? (
+                {selectedCategory.cookies &&
+                selectedCategory.cookies.length > 0 ? (
                   <div className="cookie-providers-list">
                     {Object.entries(
                       selectedCategory.cookies.reduce((acc, cookie) => {
@@ -345,7 +346,9 @@ const CookiePreferences = ({ isOpen, onClose, onSave }) => {
                       }, {})
                     ).map(([provider, cookies]) => (
                       <div key={provider} className="cookie-provider-group">
-                        <h3 className="cookie-provider-name">Provider {provider}</h3>
+                        <h3 className="cookie-provider-name">
+                          Provider {provider}
+                        </h3>
                         <div className="cookie-table-container">
                           <table className="cookie-table">
                             <thead>

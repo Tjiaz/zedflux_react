@@ -31,11 +31,11 @@ const heroFeatures = [
 
 // Shortened service names to prevent overlap with hero image
 const heroServices = [
-  "Data Analytics & AI",
-  "Software Engineering",
+  "Data & AI",
+  "Software Dev",
   "Generative AI",
-  "Digital Transformation",
-  "Experience Design",
+  "Digital Xform",
+  "UX Design",
   "Digital Strategy",
 ];
 
@@ -44,6 +44,9 @@ const Hero = () => {
 
   const heroImages = [hero1, hero2, hero3];
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0);
+
+  // Compute the longest label to prevent layout shift (use ch units)
+  const longestServiceLength = Math.max(...heroServices.map((s) => s.length));
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -72,8 +75,13 @@ const Hero = () => {
             <h2 className="hero-title">
               We Provide{" "}
               <br className="d-lg-none" />
-              <span className="dynamic-service">
-                {heroServices[currentServiceIndex]}
+              <span
+                className="dynamic-service-wrap"
+                style={{ ["--service-width-ch"]: `${longestServiceLength + 2}ch` }}
+              >
+                <span className="dynamic-service" aria-live="polite">
+                  {heroServices[currentServiceIndex]}
+                </span>
               </span>
             </h2>
             <p className="dynamic-description">
@@ -93,7 +101,11 @@ const Hero = () => {
               </NavLink>
             </div>
           </div>
-          <div className="col-lg-6 order-1 order-lg-2 hero-image-container">
+          <div className="col-lg-6 order-1 order-lg-2 hero-image-container modernized">
+            {/* Decorative modern shapes */}
+            <span className="hero-shape hs-1"></span>
+            <span className="hero-shape hs-2"></span>
+            <span className="hero-shape hs-3"></span>
             <div className="hero-image-wrapper">
               {heroImages.map((image, index) => (
                 <img

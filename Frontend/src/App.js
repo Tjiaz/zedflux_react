@@ -17,6 +17,7 @@ import "./index.css";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import BlogPage from "./BlogPage";
+import BlogArticle from "./BlogArticle";
 import AboutUs from "./about/AboutUs";
 import ServicesPage from "./services/ServicesPage"; // Import the ServicesPage component
 import PortfolioPage from "./Portfolio/PortfolioPage";
@@ -84,7 +85,9 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/blog/category/:category" element={<BlogPage />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogArticle />} />
             <Route path="/about" element={<AboutUs />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />

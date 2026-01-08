@@ -20,16 +20,40 @@ const TopBar = () => {
             <span className="text-nowrap">+1 5589 55488 55</span>
           </Col>
           <Col className="d-none d-md-flex justify-content-end align-items-center">
-            <a href="#" className="nav-link me-3">
+            <a 
+              href="https://x.com/Zedflux_tech" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-link me-3"
+              aria-label="Twitter"
+            >
               <i className="bi bi-twitter"></i>
             </a>
-            <a href="#" className="nav-link me-3">
+            <a 
+              href="https://www.facebook.com/profile.php?id=61586301954425" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-link me-3"
+              aria-label="Facebook"
+            >
               <i className="bi bi-facebook"></i>
             </a>
-            <a href="#" className="nav-link me-3">
+            <a 
+              href="https://instagram.com/zedflux" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-link me-3"
+              aria-label="Instagram"
+            >
               <i className="bi bi-instagram"></i>
             </a>
-            <a href="#" className="nav-link ">
+            <a 
+              href="https://www.linkedin.com/company/zedflux-technologies/?viewAsMember=true" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nav-link"
+              aria-label="LinkedIn"
+            >
               <i className="bi bi-linkedin"></i>
             </a>
           </Col>

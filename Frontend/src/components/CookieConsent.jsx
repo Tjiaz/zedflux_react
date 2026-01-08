@@ -76,16 +76,21 @@ const CookieConsent = () => {
             <div className="cookie-consent-content">
               <h3>Cookie Consent</h3>
               <p>
-                We use essential cookies to ensure our website functions properly. 
-                With your permission, we may also use additional cookies to enhance 
-                your experience, tailor content, customize advertisements, and analyze 
-                website traffic. For these purposes, we may share your website usage 
-                data with our social media, advertising, and analytics partners.
+                We use essential cookies to ensure our website functions
+                properly. With your permission, we may also use additional
+                cookies to enhance your experience, tailor content, customize
+                advertisements, and analyze website traffic. For these purposes,
+                we may share your website usage data with our social media,
+                advertising, and analytics partners.
               </p>
               <p>
-                By clicking "Accept," you consent to our website's use of cookies as 
-                outlined in our <Link to="/cookies" className="cookie-policy-link">Cookie Policy</Link>. 
-                You can modify your cookie preferences at any time by clicking "Preferences."
+                By clicking "Accept," you consent to our website's use of
+                cookies as outlined in our{" "}
+                <Link to="/cookies" className="cookie-policy-link">
+                  Cookie Policy
+                </Link>
+                . You can modify your cookie preferences at any time by clicking
+                "Preferences."
               </p>
             </div>
             <div className="cookie-consent-buttons">
@@ -95,7 +100,10 @@ const CookieConsent = () => {
               >
                 Preferences
               </button>
-              <button className="btn-cookie btn-decline" onClick={handleDecline}>
+              <button
+                className="btn-cookie btn-decline"
+                onClick={handleDecline}
+              >
                 Decline
               </button>
               <button className="btn-cookie btn-accept" onClick={handleAccept}>
@@ -115,4 +123,3 @@ const CookieConsent = () => {
 };
 
 export default CookieConsent;
-

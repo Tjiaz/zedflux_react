@@ -51,7 +51,7 @@ const Footer = () => {
             </p>
             <div className="social-links d-flex mt-4">
               <a
-                href="https://twitter.com/zedflux"
+                href="https://x.com/Zedflux_tech"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="twitter"
@@ -60,7 +60,7 @@ const Footer = () => {
                 <i className="bi bi-twitter"></i>
               </a>
               <a
-                href="https://facebook.com/zedflux"
+                href="https://www.facebook.com/profile.php?id=61586301954425"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="facebook"
@@ -78,7 +78,7 @@ const Footer = () => {
                 <i className="bi bi-instagram"></i>
               </a>
               <a
-                href="https://linkedin.com/company/zedflux"
+                href="https://www.linkedin.com/company/zedflux-technologies/?viewAsMember=true"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="linkedin"
