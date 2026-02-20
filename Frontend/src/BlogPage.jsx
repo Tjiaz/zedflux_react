@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
+import axiosInstance from "./utils/axiosConfig";
 import "./blog.css";
 
 const defaultImage = "/images/default_image.png";
@@ -9,7 +10,28 @@ const BlogPage = () => {
   const { category: urlCategory } = useParams();
   const [activeCategory, setActiveCategory] = useState(urlCategory || "all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [articlesList, setArticlesList] = useState(null);
   const postsPerPage = 12;
+
+  // Fetch articles from API (fallback to static list on error)
+  useEffect(() => {
+    axiosInstance
+      .get("/articles")
+      .then((res) => {
+        const data = res.data || [];
+        const list = data.map((a, i) => ({
+          id: i + 1,
+          title: a.title,
+          category: (a.meta && a.meta.category ? a.meta.category : a.category || "").toLowerCase(),
+          image: a.image || a.headerImage || defaultImage,
+          slug: a.slug,
+          date: a.date || a.created_at,
+          readTime: (a.meta && a.meta.readTime) || a.readTime || "",
+        }));
+        setArticlesList(list);
+      })
+      .catch(() => setArticlesList([]));
+  }, []);
 
   // Update active category when URL changes
   useEffect(() => {
@@ -63,8 +85,8 @@ const BlogPage = () => {
     return categoryMap[category] || category.toUpperCase();
   };
 
-  // Sample blog articles - 2 pages worth (24 articles)
-  const allArticles = [
+  // Static fallback when API is unavailable or returns empty
+  const defaultArticles = [
     {
       id: 1,
       title: "Top 11 AI Tools to Enhance Employee Productivity",
@@ -327,6 +349,9 @@ const BlogPage = () => {
       readTime: "14 min read",
     },
   ];
+
+  const allArticles =
+    articlesList != null && articlesList.length > 0 ? articlesList : defaultArticles;
 
   // Filter articles by category
   const filteredArticles =

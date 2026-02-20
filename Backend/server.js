@@ -352,7 +352,7 @@ const extractImageFromRSSContent = (item) => {
 const fetchImageFromHtml = async (articleUrl) => {
   try {
     const response = await axios.get(articleUrl, {
-      timeout: 3000,
+      timeout: 10000, // Increased timeout for React apps
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -361,26 +361,45 @@ const fetchImageFromHtml = async (articleUrl) => {
     const html = response.data;
     const $ = cheerio.load(html);
 
-    // Try multiple common image selectors
+    // Parse the article URL to handle relative image URLs
+    const baseUrl = new URL(articleUrl);
+
+    // Try multiple common image selectors (prioritize meta tags)
     const selectors = [
-      'meta[property="og:image"]',
-      'meta[name="twitter:image"]',
-      'img[class*="main"]',
-      'img[class*="article"]',
-      'img[class*="featured"]',
-      "img:first",
+      { selector: 'meta[property="og:image"]', attr: 'content' },
+      { selector: 'meta[name="twitter:image"]', attr: 'content' },
+      { selector: 'meta[property="og:image:url"]', attr: 'content' },
+      { selector: 'img[class*="main"]', attr: 'src' },
+      { selector: 'img[class*="article"]', attr: 'src' },
+      { selector: 'img[class*="featured"]', attr: 'src' },
+      { selector: 'img[class*="header"]', attr: 'src' },
+      { selector: "img:first", attr: 'src' },
     ];
 
-    for (const selector of selectors) {
-      const imageUrl = $(selector).attr("content") || $(selector).attr("src");
-      if (imageUrl && imageUrl.startsWith("http")) {
-        return imageUrl;
+    for (const { selector, attr } of selectors) {
+      const imageUrl = $(selector).attr(attr);
+      if (imageUrl) {
+        // If it's already an absolute URL, return it
+        if (imageUrl.startsWith("http")) {
+          return imageUrl;
+        }
+        // If it's a relative URL, convert it to absolute
+        if (imageUrl.startsWith("/")) {
+          return baseUrl.origin + imageUrl;
+        }
+        // If it's a relative path, resolve it relative to the article URL
+        try {
+          return new URL(imageUrl, baseUrl.origin).href;
+        } catch (e) {
+          // Skip invalid URLs
+          continue;
+        }
       }
     }
 
     return null;
   } catch (error) {
-    console.error(`Error fetching image from ${articleUrl}:`, error);
+    console.error(`Error fetching image from ${articleUrl}:`, error.message);
     return null;
   }
 };
@@ -586,6 +605,144 @@ app.post("/api/service-inquiry", (req, res) => {
 });
 
 // ------------------------------------------------------------
+// Blog articles (MySQL)
+// ------------------------------------------------------------
+
+const createBlogArticlesTableQuery = `
+  CREATE TABLE IF NOT EXISTS blog_articles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    title VARCHAR(500) NOT NULL,
+    header_image VARCHAR(500) NOT NULL DEFAULT '',
+    meta_json JSON,
+    intro TEXT,
+    intro_continuation TEXT,
+    intro_closing TEXT,
+    sections_json JSON NOT NULL,
+    tool_sections_json JSON,
+    similar_stories_json JSON,
+    author_json JSON,
+    ad_section_json JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_slug (slug)
+  )
+`;
+
+db.query(createBlogArticlesTableQuery, (err) => {
+  if (err) {
+    console.error("Error creating blog_articles table:", err);
+  }
+});
+
+// GET /api/articles — list all articles (for blog listing and recent blog)
+app.get("/api/articles", (req, res) => {
+  const { category } = req.query;
+  const sql = category
+    ? "SELECT slug, title, header_image, meta_json, intro, created_at FROM blog_articles WHERE LOWER(JSON_UNQUOTE(JSON_EXTRACT(meta_json, '$.category'))) = LOWER(?) ORDER BY created_at DESC"
+    : "SELECT slug, title, header_image, meta_json, intro, created_at FROM blog_articles ORDER BY created_at DESC";
+  const params = category ? [category] : [];
+
+  db.query(sql, params, (err, rows) => {
+    if (err) {
+      console.error("Error fetching articles:", err);
+      return res.status(500).json({ error: "Failed to fetch articles" });
+    }
+    const list = (rows || []).map((row) => ({
+      slug: row.slug,
+      title: row.title,
+      image: row.header_image,
+      headerImage: row.header_image,
+      intro: row.intro,
+      meta: typeof row.meta_json === "string" ? JSON.parse(row.meta_json) : row.meta_json,
+      category: (row.meta_json && (typeof row.meta_json === "string" ? JSON.parse(row.meta_json) : row.meta_json).category) || "",
+      date: (row.meta_json && (typeof row.meta_json === "string" ? JSON.parse(row.meta_json) : row.meta_json).date) || null,
+      readTime: (row.meta_json && (typeof row.meta_json === "string" ? JSON.parse(row.meta_json) : row.meta_json).readTime) || null,
+      created_at: row.created_at,
+    }));
+    res.json(list);
+  });
+});
+
+// GET /api/articles/:slug — full article by slug
+app.get("/api/articles/:slug", (req, res) => {
+  const { slug } = req.params;
+  const sql = "SELECT * FROM blog_articles WHERE slug = ? LIMIT 1";
+  db.query(sql, [slug], (err, rows) => {
+    if (err) {
+      console.error("Error fetching article:", err);
+      return res.status(500).json({ error: "Failed to fetch article" });
+    }
+    const row = (rows && rows[0]);
+    if (!row) {
+      return res.status(404).json({ error: "Article not found" });
+    }
+    const parse = (v) => (v == null ? v : typeof v === "string" ? JSON.parse(v) : v);
+    const article = {
+      title: row.title,
+      headerImage: row.header_image,
+      meta: parse(row.meta_json),
+      intro: row.intro,
+      introContinuation: row.intro_continuation || undefined,
+      introClosing: row.intro_closing || undefined,
+      sections: parse(row.sections_json) || [],
+      toolSections: parse(row.tool_sections_json) || undefined,
+      similarStories: parse(row.similar_stories_json) || undefined,
+      author: parse(row.author_json) || undefined,
+      adSection: parse(row.ad_section_json) || undefined,
+    };
+    res.json(article);
+  });
+});
+
+// POST /api/articles — create or update article (for admin or seed script)
+app.post("/api/articles", (req, res) => {
+  const body = req.body;
+  const slug = body.slug || body.title && body.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  if (!slug || !body.title || !body.sections) {
+    return res.status(400).json({ error: "slug, title, and sections are required" });
+  }
+  const meta = body.meta || {};
+  const header_image = body.headerImage || body.header_image || "";
+  const intro = body.intro || "";
+  const intro_continuation = body.introContinuation || body.intro_continuation || null;
+  const intro_closing = body.introClosing || body.intro_closing || null;
+  const sections_json = JSON.stringify(body.sections);
+  const tool_sections_json = body.toolSections != null ? JSON.stringify(body.toolSections) : null;
+  const similar_stories_json = body.similarStories != null ? JSON.stringify(body.similarStories) : null;
+  const author_json = body.author != null ? JSON.stringify(body.author) : null;
+  const ad_section_json = body.adSection != null ? JSON.stringify(body.adSection) : null;
+  const meta_json = JSON.stringify(meta);
+
+  const sql = `
+    INSERT INTO blog_articles (slug, title, header_image, meta_json, intro, intro_continuation, intro_closing, sections_json, tool_sections_json, similar_stories_json, author_json, ad_section_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      title = VALUES(title),
+      header_image = VALUES(header_image),
+      meta_json = VALUES(meta_json),
+      intro = VALUES(intro),
+      intro_continuation = VALUES(intro_continuation),
+      intro_closing = VALUES(intro_closing),
+      sections_json = VALUES(sections_json),
+      tool_sections_json = VALUES(tool_sections_json),
+      similar_stories_json = VALUES(similar_stories_json),
+      author_json = VALUES(author_json),
+      ad_section_json = VALUES(ad_section_json),
+      updated_at = CURRENT_TIMESTAMP
+  `;
+  const params = [slug, body.title, header_image, meta_json, intro, intro_continuation, intro_closing, sections_json, tool_sections_json, similar_stories_json, author_json, ad_section_json];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("Error saving article:", err);
+      return res.status(500).json({ error: "Failed to save article" });
+    }
+    res.json({ ok: true, slug, id: result.insertId || result.affectedRows });
+  });
+});
+
+// ------------------------------------------------------------
 // Social Auto-post (optional, disabled by default)
 // ------------------------------------------------------------
 
@@ -629,21 +786,151 @@ function formatSocialPost({ title, link, category }) {
   return `${title}\n\n${link}\n\n${tags}`;
 }
 
-async function postToX(text) {
-  const token = process.env.X_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN;
-  if (!token) return { ok: false, skipped: true, reason: "Missing X_BEARER_TOKEN" };
+async function postToX(text, imageUrl = null, link = null) {
+  const bearerToken = process.env.X_BEARER_TOKEN || process.env.TWITTER_BEARER_TOKEN;
+  if (!bearerToken) return { ok: false, skipped: true, reason: "Missing X_BEARER_TOKEN" };
 
-  // Twitter/X API v2 endpoint is still api.twitter.com for most apps
+  // Twitter/X API v2 endpoint for tweets
   const url = "https://api.twitter.com/2/tweets";
+  
+  console.log(`postToX called with imageUrl: ${imageUrl}, link: ${link}`);
+  
+  // Note: Twitter/X API v2 with Bearer tokens (OAuth 2.0) cannot directly upload media
+  // However, when a URL is included in the tweet, Twitter automatically creates a card
+  // and fetches the image from Open Graph (og:image) or Twitter Card (twitter:image) meta tags
+  // So if the article URL has proper meta tags, Twitter will automatically include the image
+  
+  // Check for OAuth 1.0a credentials for direct media upload (optional)
+  const consumerKey = process.env.X_CONSUMER_KEY || process.env.TWITTER_CONSUMER_KEY;
+  const consumerSecret = process.env.X_CONSUMER_SECRET || process.env.TWITTER_CONSUMER_SECRET;
+  const accessToken = process.env.X_ACCESS_TOKEN || process.env.TWITTER_ACCESS_TOKEN;
+  const accessTokenSecret = process.env.X_ACCESS_TOKEN_SECRET || process.env.TWITTER_ACCESS_TOKEN_SECRET;
+  
+  let mediaId = null;
+  
+  // If OAuth 1.0a credentials are available, try to upload media directly
+  if (imageUrl && consumerKey && consumerSecret && accessToken && accessTokenSecret) {
+    console.log(`Attempting to upload image to Twitter: ${imageUrl}`);
+    try {
+      let oauth;
+      try {
+        oauth = require('oauth-1.0a');
+      } catch (e) {
+        console.log('oauth-1.0a package not found. Twitter will use URL card instead.');
+      }
+      
+      if (oauth) {
+        const crypto = require('crypto');
+        
+        // Check if imageUrl is localhost - Twitter can't fetch from localhost, so we must upload directly
+        const isLocalhost = imageUrl && (imageUrl.includes('localhost') || imageUrl.includes('127.0.0.1'));
+        if (isLocalhost) {
+          console.log(`Image URL is localhost, must upload directly: ${imageUrl}`);
+        }
+        
+        // Download the image
+        try {
+          const imageResponse = await axios.get(imageUrl, {
+            responseType: 'arraybuffer',
+            timeout: 10000,
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+          });
+          
+          const imageBuffer = Buffer.from(imageResponse.data);
+          const imageBase64 = imageBuffer.toString('base64');
+          
+          if (!imageBase64 || imageBase64.length === 0) {
+            throw new Error('Downloaded image is empty');
+          }
+          
+          console.log(`Successfully downloaded image (${imageBuffer.length} bytes, base64 length: ${imageBase64.length})`);
+          
+          // Create OAuth 1.0a instance
+          const oauthInstance = oauth({
+            consumer: { key: consumerKey, secret: consumerSecret },
+            signature_method: 'HMAC-SHA1',
+            hash_function(base_string, key) {
+              return crypto.createHmac('sha1', key).update(base_string).digest('base64');
+            },
+          });
+          
+          // Prepare OAuth request for media upload
+          const requestData = {
+            url: 'https://upload.twitter.com/1.1/media/upload.json',
+            method: 'POST',
+            data: { media_data: imageBase64 },
+          };
+          
+          const token = { key: accessToken, secret: accessTokenSecret };
+          const authHeader = oauthInstance.toHeader(oauthInstance.authorize(requestData, token));
+          
+          // Upload media to Twitter/X
+          const uploadRes = await axios.post(
+            requestData.url,
+            { media_data: imageBase64 },
+            {
+              headers: {
+                ...authHeader,
+                "Content-Type": "application/x-www-form-urlencoded"
+              },
+              timeout: 15000
+            }
+          );
+          
+          mediaId = uploadRes.data?.media_id_string || null;
+          if (mediaId) {
+            console.log(`Successfully uploaded image to Twitter. Media ID: ${mediaId}`);
+          } else {
+            console.log(`Image upload succeeded but no media_id_string in response`);
+          }
+        } catch (downloadError) {
+          console.error(`Error downloading image from ${imageUrl}:`, downloadError.message);
+          throw downloadError;
+        }
+      }
+    } catch (error) {
+      console.error('Error uploading media to X:', error.message);
+      if (error.response) {
+        console.error('Twitter API error response:', error.response.data);
+      }
+      // Fall back to URL card (Twitter will fetch image from meta tags)
+      mediaId = null;
+    }
+  } else {
+    if (!imageUrl) {
+      console.log('No imageUrl provided, will use URL card');
+    } else {
+      console.log('OAuth 1.0a credentials missing, will use URL card');
+    }
+  }
+  
+  const payload = { text };
+  
+  // If media uploaded successfully, attach it to the tweet
+  if (mediaId) {
+    payload.media = { media_ids: [mediaId] };
+    console.log(`Attaching media to tweet: ${mediaId}`);
+  }
+  // Note: The text already includes the link (from formatSocialPost)
+  // Twitter will automatically create a card from the URL's meta tags if no media is attached
+  // Ensure your blog article pages have og:image and twitter:image meta tags
+
+  console.log(`Posting to Twitter with payload:`, JSON.stringify(payload, null, 2));
+  
   const res = await axios.post(
     url,
-    { text },
-    { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, timeout: 10000 }
+    payload,
+    { headers: { Authorization: `Bearer ${bearerToken}`, "Content-Type": "application/json" }, timeout: 15000 }
   );
-  return { ok: true, data: res.data };
+  
+  console.log(`Twitter post successful. Response:`, res.data);
+  
+  return { ok: true, data: res.data, mediaId, usedImage: !!mediaId, imageUrl };
 }
 
-async function postToFacebook({ message, link }) {
+async function postToFacebook({ message, link, imageUrl = null }) {
   const pageId = process.env.FACEBOOK_PAGE_ID;
   const accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
   if (!pageId || !accessToken) {
@@ -654,11 +941,20 @@ async function postToFacebook({ message, link }) {
   const params = new URLSearchParams();
   params.set("message", message);
   if (link) params.set("link", link);
+  
+  // Add image if provided - Facebook will automatically fetch and attach it from the URL
+  if (imageUrl && imageUrl.startsWith('http')) {
+    // Use picture parameter for image preview
+    params.set("picture", imageUrl);
+    // Also set attached_media if we want to upload it directly (alternative approach)
+    // For now, using picture parameter is simpler
+  }
+  
   params.set("access_token", accessToken);
 
   const res = await axios.post(url, params.toString(), {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    timeout: 10000,
+    timeout: 15000,
   });
   return { ok: true, data: res.data };
 }
@@ -727,16 +1023,56 @@ async function runSocialAutopostOnce() {
     const title = latestItem.title || "New article";
     const link = latestItem.link || latestLink;
     const text = formatSocialPost({ title, link, category });
+    
+    // Extract image from RSS item
+    let imageUrl = extractImageFromRSSContent(latestItem);
+    
+    // If no image found in RSS content, try fetching from the article URL
+    // This is especially important for blog articles on the same site
+    if (!imageUrl && link) {
+      try {
+        imageUrl = await fetchImageFromHtml(link);
+        if (imageUrl) {
+          console.log(`Extracted image from HTML for ${link}: ${imageUrl}`);
+        }
+      } catch (e) {
+        console.log(`Failed to fetch image from HTML for ${link}: ${e.message}`);
+      }
+    }
+    
+    // Convert relative image URLs to absolute if needed
+    if (imageUrl && !imageUrl.startsWith('http')) {
+      try {
+        const articleUrl = new URL(link);
+        if (imageUrl.startsWith('/')) {
+          imageUrl = articleUrl.origin + imageUrl;
+        } else {
+          imageUrl = new URL(imageUrl, articleUrl.origin).href;
+        }
+        console.log(`Converted relative image URL to absolute: ${imageUrl}`);
+      } catch (e) {
+        console.log(`Failed to convert relative image URL: ${e.message}`);
+        // If URL parsing fails, skip image
+        imageUrl = null;
+      }
+    }
+    
+    // Log final image URL for debugging
+    if (imageUrl) {
+      console.log(`Final image URL for Twitter post: ${imageUrl}`);
+    } else {
+      console.log(`No image URL found for article: ${link}`);
+    }
 
     const platformResults = {};
     try {
-      platformResults.x = await postToX(text);
+      platformResults.x = await postToX(text, imageUrl, link);
     } catch (e) {
       platformResults.x = { ok: false, error: e.message };
     }
 
     try {
-      platformResults.facebook = await postToFacebook({ message: title, link });
+      platformResults.facebook = await postToFacebook({ message: title, link, imageUrl });
     } catch (e) {
       platformResults.facebook = { ok: false, error: e.message };
     }

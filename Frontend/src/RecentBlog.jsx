@@ -1,13 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Container } from "react-bootstrap";
+import axiosInstance from "./utils/axiosConfig";
 import "./blog.css";
 
 const defaultImage = "/images/default_image.png";
 
-const RecentBlog = () => {
-  // Latest blog articles matching BlogPage structure
-  const latestArticles = [
+const defaultLatestArticles = [
     {
       id: 1,
       title: "Top 11 AI Tools to Enhance Employee Productivity",
@@ -54,6 +53,28 @@ const RecentBlog = () => {
       readTime: "22 min read",
     },
   ];
+
+const RecentBlog = () => {
+  const [latestArticles, setLatestArticles] = useState(defaultLatestArticles);
+
+  useEffect(() => {
+    axiosInstance
+      .get("/articles")
+      .then((res) => {
+        const data = res.data || [];
+        const list = data.slice(0, 6).map((a, i) => ({
+          id: i + 1,
+          title: a.title,
+          category: (a.meta && a.meta.category ? a.meta.category : a.category || "").toLowerCase(),
+          image: a.image || a.headerImage || defaultImage,
+          slug: a.slug,
+          date: a.date || a.created_at,
+          readTime: (a.meta && a.meta.readTime) || a.readTime || "",
+        }));
+        if (list.length > 0) setLatestArticles(list);
+      })
+      .catch(() => {});
+  }, []);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);

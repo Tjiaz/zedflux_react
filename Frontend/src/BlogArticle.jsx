@@ -1,15 +1,33 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
 import { Helmet } from "react-helmet-async";
+import axiosInstance from "./utils/axiosConfig";
 import "./blogArticle.css";
 
 const defaultImage = "/images/default_image.png";
 
+const notFoundArticle = {
+  title: "Article Not Found",
+  headerImage: defaultImage,
+  intro: "The article you're looking for doesn't exist.",
+  sections: [],
+};
+
 const BlogArticle = () => {
   const { slug } = useParams();
+  const [articleFromApi, setArticleFromApi] = useState(null);
   const shareUrl =
     typeof window !== "undefined" && window.location ? window.location.href : "";
+
+  useEffect(() => {
+    if (!slug) return;
+    setArticleFromApi(null);
+    axiosInstance
+      .get(`/articles/${slug}`)
+      .then((res) => setArticleFromApi(res.data))
+      .catch(() => setArticleFromApi(undefined));
+  }, [slug]);
 
   const articlesData = {
     "top-11-ai-tools-enhance-employee-productivity": {
@@ -2437,12 +2455,10 @@ const BlogArticle = () => {
     },
   };
 
-  const article = articlesData[slug] || {
-    title: "Article Not Found",
-    headerImage: defaultImage,
-    intro: "The article you're looking for doesn't exist.",
-    sections: [],
-  };
+  const article =
+    articleFromApi !== null && articleFromApi !== undefined
+      ? articleFromApi
+      : (articlesData[slug] || notFoundArticle);
 
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(article.title || "Zedflux Blog");
