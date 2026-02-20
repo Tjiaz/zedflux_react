@@ -44,6 +44,15 @@ const RecentBlog = () => {
       date: "2026-01-12",
       readTime: "10 min read",
     },
+    {
+      id: 5,
+      title: "Key Digital Transformation Challenges Organizations Face in 2026",
+      category: "transformation",
+      image: "/blog/Transformation/top.png",
+      slug: "top-digital-transformation-challenges-businesses-2026",
+      date: "2026-02-20",
+      readTime: "22 min read",
+    },
   ];
 
   const formatDate = (dateString) => {

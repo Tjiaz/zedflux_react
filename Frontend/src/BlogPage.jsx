@@ -102,6 +102,15 @@ const BlogPage = () => {
       readTime: "10 min read",
     },
     {
+      id: 30,
+      title: "Key Digital Transformation Challenges Organizations Face in 2026",
+      category: "transformation",
+      image: "/blog/Transformation/top.png",
+      slug: "top-digital-transformation-challenges-businesses-2026",
+      date: "2026-02-20",
+      readTime: "22 min read",
+    },
+    {
       id: 5,
       title: "Top AI Agent Development Companies 2026 for Custom Enterprise Solutions",
       category: "ai",
