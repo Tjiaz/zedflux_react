@@ -2,64 +2,10 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./portfolio.css";
 import SuccessStoryCard from "./SuccessStoryCard";
-import ServicePill from "./ServicePill";
-import diamond from "../images/diamond.webp";
 import axiosInstance from "../utils/axiosConfig";
+import { portfolioStories } from "./portfolioData";
 
 const PortfolioPage = () => {
-  const successStories = [
-    {
-      title: "Revolutionizing eCommerce",
-      image: diamond,
-      description:
-        "Unifying systems and enhancing customer experiences for Diamonds Direct",
-      services: ["AI/ML", "TRANSFORMATION", "MODERNIZATION"],
-      team: [
-        "Thomas Riberio",
-        "Sihye Ryu",
-        "Ricairis Tejada",
-        "Viraj Upadhyay",
-      ],
-    },
-    {
-      title: "Bespoke B2B Sales Portal",
-      video: "/porfolio/cadence-cover.mp4",
-      description:
-        "Transforming sales through a custom-built sales portal and ERP integration",
-      services: ["DESIGN", "DEVOPS", "INNOVATION"],
-      team: ["Maryam Ghafoori", "Jingya Wang"],
-    },
-    {
-      title: "Automated Invoice Processing",
-      video: "/porfolio/automated-invoice.mp4",
-      description: "Reducing manual tasks with machine learning models",
-      services: ["AI/ML", "TRANSFORMATION", "INNOVATION"],
-      team: ["Maryam Ghafoori", "Jingya Wang"],
-    },
-    {
-      title: "Sales Efficiency and Engagement",
-      video: "/porfolio/sale_efficiency.mp4",
-      description: "Re-imagining cold outreach through Design Sprint",
-      services: ["INNOVATION", "DESIGN", "STRATEGY"],
-      team: ["Maryam Ghafoori", "Jingya Wang"],
-    },
-    {
-      title: "AI-Powered Personalization",
-      video: "/porfolio/AI-Powered.mp4",
-      description: "Enhancing eCommerce experiences",
-      services: ["STRATEGY", "AI/ML", "STRATEGY"],
-      team: ["Maryam Ghafoori", "Jingya Wang"],
-    },
-    {
-      title: "Data Platform for Real-time insights",
-      video: "/porfolio/Data.mp4",
-      description: "Enabling data-backed decisions",
-      services: ["INNOVATION", "ANALYTICS"],
-      team: ["Maryam Ghafoori", "Jingya Wang"],
-    },
-
-    // Add other success stories similarly
-  ];
   const [contactFormData, setContactFormData] = useState({
     fullName: "",
     email: "",
@@ -144,7 +90,7 @@ const PortfolioPage = () => {
       </section>
 
       <section className="success-stories-grid">
-        {successStories.map((story, index) => (
+        {portfolioStories.map((story, index) => (
           <SuccessStoryCard key={index} story={story} />
         ))}
       </section>

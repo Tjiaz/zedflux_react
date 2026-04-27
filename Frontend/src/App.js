@@ -14,13 +14,14 @@ import Footer from "./Footer";
 import AOS from "aos";
 import "aos/dist/aos.css"; // Import AOS CSS
 import "./index.css";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TopBar from "./TopBar";
 import BlogPage from "./BlogPage";
 import BlogArticle from "./BlogArticle";
 import AboutUs from "./about/AboutUs";
 import ServicesPage from "./services/ServicesPage"; // Import the ServicesPage component
 import PortfolioPage from "./Portfolio/PortfolioPage";
+import PortfolioDetailPage from "./Portfolio/PortfolioDetailPage";
 import GroceryApp from "./case-studies-details/GroceryApp";
 import ErrorBoundary from "./ErrorBoundary";
 import DataServiceDetails from "./services/Dataservices_details";
@@ -32,6 +33,7 @@ import DigitalStrategyDetails from "./services/DigitalStrategyDetails";
 import ScrollToTop from "./ScrollToTop";
 import CookieConsent from "./components/CookieConsent";
 import CookiePolicy from "./pages/CookiePolicy";
+import ChatWidget from "./ChatWidget";
 
 const Home = () => (
   <>
@@ -91,6 +93,7 @@ function App() {
             <Route path="/about" element={<AboutUs />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
+            <Route path="/portfolio/:slug" element={<PortfolioDetailPage />} />
             <Route path="/case-studies/grocery-app" element={<GroceryApp />} />
             <Route path="/contact" element={<Contact />} />
             <Route
@@ -119,6 +122,7 @@ function App() {
             />
             <Route path="/cookies" element={<CookiePolicy />} />
           </Routes>
+          <ChatWidget />
           <CookieConsent />
           <Footer />
         </Router>
