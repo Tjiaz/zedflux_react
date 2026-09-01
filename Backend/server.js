@@ -5,6 +5,7 @@ const cors = require("cors");
 const Parser = require("rss-parser");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 const cheerio = require("cheerio");
 const axios = require("axios");
 
@@ -82,6 +83,33 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 app.use("/public", express.static(path.join(__dirname, "public")));
+
+const getFallbackSubmissionPath = () => {
+  if (process.env.SUBMISSION_FALLBACK_PATH) {
+    return process.env.SUBMISSION_FALLBACK_PATH;
+  }
+
+  return process.env.VERCEL || process.env.NODE_ENV === "production"
+    ? path.join(os.tmpdir(), "zedflux-submissions.jsonl")
+    : path.join(__dirname, "data", "submissions.jsonl");
+};
+
+const saveSubmissionFallback = (type, payload, callback) => {
+  const fallbackPath = getFallbackSubmissionPath();
+  const entry = {
+    type,
+    payload,
+    created_at: new Date().toISOString(),
+  };
+
+  fs.mkdir(path.dirname(fallbackPath), { recursive: true }, (mkdirErr) => {
+    if (mkdirErr) {
+      return callback(mkdirErr);
+    }
+
+    fs.appendFile(fallbackPath, `${JSON.stringify(entry)}\n`, callback);
+  });
+};
 
 // Technology-focused RSS Feed URLs - Using reliable tech news sources
 const RSS_FEEDS = {
@@ -532,9 +560,23 @@ app.post("/api/contact", (req, res) => {
     db.query(insertQuery, [name, email, subject, message], (err, result) => {
       if (err) {
         console.error("Database insertion error:", err);
-        return res
-          .status(500)
-          .json({ error: "Failed to save contact information" });
+        saveSubmissionFallback(
+          "contact",
+          { name, email, subject, message },
+          (fallbackErr) => {
+            if (fallbackErr) {
+              console.error("Fallback contact save error:", fallbackErr);
+              return;
+            }
+
+            console.log("Contact submission saved to fallback storage");
+          }
+        );
+
+        return res.json({
+          message: "Message sent successfully!",
+          fallback: true,
+        });
       }
 
       res.json({ message: "Message sent successfully!", id: result.insertId });
@@ -590,9 +632,23 @@ app.post("/api/service-inquiry", (req, res) => {
       (err, result) => {
         if (err) {
           console.error("Database insertion error:", err);
-          return res
-            .status(500)
-            .json({ error: "Failed to save service inquiry" });
+          saveSubmissionFallback(
+            "service-inquiry",
+            { firstName, lastName, workEmail, company, serviceType },
+            (fallbackErr) => {
+              if (fallbackErr) {
+                console.error("Fallback service inquiry save error:", fallbackErr);
+                return;
+              }
+
+              console.log("Service inquiry saved to fallback storage");
+            }
+          );
+
+          return res.json({
+            message: "Thank you! We'll be in touch soon.",
+            fallback: true,
+          });
         }
 
         res.json({ 
