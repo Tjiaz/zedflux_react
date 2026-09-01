@@ -536,6 +536,8 @@ app.post("/api/contact", (req, res) => {
     return res.status(400).json({ error: "Name and email are required" });
   }
 
+  const contactSubmission = { name, email, subject, message };
+
   // Create table if missing (keeps local/dev setup working)
   const createContactsTableQuery = `
     CREATE TABLE IF NOT EXISTS contacts (
@@ -548,38 +550,41 @@ app.post("/api/contact", (req, res) => {
     )
   `;
 
-  db.query(createContactsTableQuery, (tableErr) => {
-    if (tableErr) {
-      console.error("Error creating contacts table:", tableErr);
-      // continue attempt to insert anyway
+  saveSubmissionFallback("contact", contactSubmission, (fallbackErr) => {
+    if (fallbackErr) {
+      console.error("Fallback contact save error:", fallbackErr);
+    } else {
+      console.log("Contact submission saved to fallback storage");
     }
 
-    const insertQuery =
-      "INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)";
+    res.json({
+      message: "Message sent successfully!",
+      fallback: true,
+    });
 
-    db.query(insertQuery, [name, email, subject, message], (err, result) => {
-      if (err) {
-        console.error("Database insertion error:", err);
-        saveSubmissionFallback(
-          "contact",
-          { name, email, subject, message },
-          (fallbackErr) => {
-            if (fallbackErr) {
-              console.error("Fallback contact save error:", fallbackErr);
+    setImmediate(() => {
+      db.query({ sql: createContactsTableQuery, timeout: 5000 }, (tableErr) => {
+        if (tableErr) {
+          console.error("Error creating contacts table:", tableErr);
+          // continue attempt to insert anyway
+        }
+
+        const insertQuery =
+          "INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)";
+
+        db.query(
+          { sql: insertQuery, timeout: 5000 },
+          [name, email, subject, message],
+          (err, result) => {
+            if (err) {
+              console.error("Database insertion error:", err);
               return;
             }
 
-            console.log("Contact submission saved to fallback storage");
+            console.log("Contact submission saved to database:", result.insertId);
           }
         );
-
-        return res.json({
-          message: "Message sent successfully!",
-          fallback: true,
-        });
-      }
-
-      res.json({ message: "Message sent successfully!", id: result.insertId });
+      });
     });
   });
 });
@@ -602,6 +607,14 @@ app.post("/api/service-inquiry", (req, res) => {
     return res.status(400).json({ error: "Invalid email address" });
   }
 
+  const serviceInquirySubmission = {
+    firstName,
+    lastName,
+    workEmail,
+    company,
+    serviceType,
+  };
+
   // Create service_inquiries table if it doesn't exist
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS service_inquiries (
@@ -615,49 +628,49 @@ app.post("/api/service-inquiry", (req, res) => {
     )
   `;
 
-  db.query(createTableQuery, (err) => {
-    if (err) {
-      console.error("Error creating table:", err);
-    }
+  saveSubmissionFallback(
+    "service-inquiry",
+    serviceInquirySubmission,
+    (fallbackErr) => {
+      if (fallbackErr) {
+        console.error("Fallback service inquiry save error:", fallbackErr);
+      } else {
+        console.log("Service inquiry saved to fallback storage");
+      }
 
-    // Insert the inquiry
-    const insertQuery = `
-      INSERT INTO service_inquiries (first_name, last_name, work_email, company, service_type) 
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    
-    db.query(
-      insertQuery,
-      [firstName, lastName, workEmail, company, serviceType],
-      (err, result) => {
-        if (err) {
-          console.error("Database insertion error:", err);
-          saveSubmissionFallback(
-            "service-inquiry",
-            { firstName, lastName, workEmail, company, serviceType },
-            (fallbackErr) => {
-              if (fallbackErr) {
-                console.error("Fallback service inquiry save error:", fallbackErr);
+      res.json({
+        message: "Thank you! We'll be in touch soon.",
+        fallback: true,
+      });
+
+      setImmediate(() => {
+        db.query({ sql: createTableQuery, timeout: 5000 }, (err) => {
+          if (err) {
+            console.error("Error creating table:", err);
+          }
+
+          // Insert the inquiry
+          const insertQuery = `
+            INSERT INTO service_inquiries (first_name, last_name, work_email, company, service_type)
+            VALUES (?, ?, ?, ?, ?)
+          `;
+
+          db.query(
+            { sql: insertQuery, timeout: 5000 },
+            [firstName, lastName, workEmail, company, serviceType],
+            (err, result) => {
+              if (err) {
+                console.error("Database insertion error:", err);
                 return;
               }
 
-              console.log("Service inquiry saved to fallback storage");
+              console.log("Service inquiry saved to database:", result.insertId);
             }
           );
-
-          return res.json({
-            message: "Thank you! We'll be in touch soon.",
-            fallback: true,
-          });
-        }
-
-        res.json({ 
-          message: "Thank you! We'll be in touch soon.",
-          id: result.insertId 
         });
-      }
-    );
-  });
+      });
+    }
+  );
 });
 
 // ------------------------------------------------------------
