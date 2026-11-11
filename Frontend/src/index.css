@@ -404,8 +404,65 @@ section {
 .hero {
   width: 100%;
   position: relative;
+  isolation: isolate;
   background: var(--color-primary);
   padding: 60px 0 0 0;
+}
+
+.hero-orbit {
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 auto;
+  height: 500px;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 57%, rgba(86, 191, 255, 0.16), transparent 53%),
+    radial-gradient(ellipse at 73% 50%, rgba(32, 195, 208, 0.13), transparent 42%);
+}
+
+.hero-orbit__ring {
+  position: absolute;
+  top: -255px;
+  left: 50%;
+  width: max(1120px, 122vw);
+  height: 660px;
+  border: 1px solid rgba(112, 203, 255, 0.24);
+  border-radius: 50%;
+  box-shadow: 0 0 34px rgba(49, 174, 255, 0.12), inset 0 0 28px rgba(49, 174, 255, 0.08);
+  transform: translateX(-50%) rotate(-8deg);
+  animation: hero-orbit-float 14s ease-in-out infinite alternate;
+}
+
+.hero-orbit__ring--middle {
+  top: -235px;
+  width: max(1020px, 112vw);
+  height: 620px;
+  border-color: rgba(84, 190, 255, 0.19);
+  transform: translateX(-50%) rotate(5deg);
+  animation-duration: 18s;
+  animation-direction: alternate-reverse;
+}
+
+.hero-orbit__ring--inner {
+  top: -215px;
+  width: max(900px, 101vw);
+  height: 580px;
+  border-color: rgba(82, 220, 230, 0.16);
+  box-shadow: 0 0 38px rgba(37, 193, 209, 0.12);
+  transform: translateX(-50%) rotate(-2deg);
+  animation-duration: 11s;
+}
+
+.hero > .container,
+.hero > .icon-boxes {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes hero-orbit-float {
+  from { margin-left: -1.2%; }
+  to { margin-left: 1.2%; }
 }
 
 @media (min-width: 1365px) {
@@ -1756,6 +1813,12 @@ section {
 .hero-image.active {
   opacity: 1;
   z-index: 1;
+  animation: hero-image-drift 5s ease-out both;
+}
+
+@keyframes hero-image-drift {
+  from { transform: scale(1.055); }
+  to { transform: scale(1); }
 }
 
 .hero-image.fade-out {
@@ -1825,7 +1888,12 @@ section {
   padding: 0 10px;
   border-radius: 5px;
   transition: all 0.5s ease;
-  animation: fadeInOut 3s infinite;
+  animation: fadeInOut 3s infinite, hero-service-rise 0.65s ease-out both;
+}
+
+@keyframes hero-service-rise {
+  from { transform: translateY(10px); filter: blur(4px); }
+  to { transform: translateY(0); filter: blur(0); }
 }
 
 @keyframes fadeInOut {
@@ -1840,6 +1908,14 @@ section {
 
 .hero-cta {
   gap: 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-orbit__ring,
+  .hero-image.active,
+  .dynamic-service {
+    animation: none;
+  }
 }
 
 .btn-get-started {

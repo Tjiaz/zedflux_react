@@ -69,15 +69,6 @@ const Footer = () => {
                 <i className="bi bi-facebook"></i>
               </a>
               <a
-                href="https://instagram.com/zedflux"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="instagram"
-                aria-label="Instagram"
-              >
-                <i className="bi bi-instagram"></i>
-              </a>
-              <a
                 href="https://www.linkedin.com/company/zedflux-technologies/?viewAsMember=true"
                 target="_blank"
                 rel="noopener noreferrer"

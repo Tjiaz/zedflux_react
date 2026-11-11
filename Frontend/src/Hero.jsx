@@ -69,6 +69,11 @@ const Hero = () => {
 
   return (
     <section id="hero" className="hero">
+      <div className="hero-orbit" aria-hidden="true">
+        <span className="hero-orbit__ring hero-orbit__ring--outer" />
+        <span className="hero-orbit__ring hero-orbit__ring--middle" />
+        <span className="hero-orbit__ring hero-orbit__ring--inner" />
+      </div>
       <div className="container position-relative">
         <div className="row gy-5" data-aos="fade-in">
           <div className="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center text-center text-lg-start">
@@ -79,7 +84,11 @@ const Hero = () => {
                 className="dynamic-service-wrap"
                 style={{ ["--service-width-ch"]: `${longestServiceLength + 2}ch` }}
               >
-                <span className="dynamic-service" aria-live="polite">
+                <span
+                  key={currentServiceIndex}
+                  className="dynamic-service"
+                  aria-live="polite"
+                >
                   {heroServices[currentServiceIndex]}
                 </span>
               </span>
