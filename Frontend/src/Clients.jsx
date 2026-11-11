@@ -1,117 +1,54 @@
-import React,{useEffect} from 'react'
-import Swiper from "swiper/bundle";
-import "swiper/css"; // Import Swiper styles
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import "./index.css";
+import React from "react";
+import "./Clients.css";
 
-const Clients= () => {
-  
-  
-    useEffect(() => {
-      // Initialize Swiper slider
-      new Swiper(".clients-slider", {
-        speed: 400,
-        loop: true,
-        autoplay: {
-          delay: 5000,
-          disableOnInteraction: false,
-        },
-        slidesPerView: "auto",
-        pagination: {
-          el: ".swiper-pagination",
-          type: "bullets",
-          clickable: true,
-        },
-        breakpoints: {
-          320: {
-            slidesPerView: 2,
-            spaceBetween: 40,
-          },
-          480: {
-            slidesPerView: 3,
-            spaceBetween: 60,
-          },
-          640: {
-            slidesPerView: 4,
-            spaceBetween: 80,
-          },
-          992: {
-            slidesPerView: 6,
-            spaceBetween: 120,
-          },
-        },
-      });
-     
-    }, []);
+import accessBank from "./images/clients/access-bank-600x172.webp";
+import cwg from "./images/clients/cwg-600x172.webp";
+import cummins from "./images/clients/cummins-600x172.webp";
+import fbNquest from "./images/clients/fbnquest-600x172.webp";
+import lagosState from "./images/clients/lagosstate-2-600x172.webp";
+import nationalSafetyCouncil from "./images/clients/nationalsaftetycouncil-1-600x172.webp";
+import yabaPsychiatric from "./images/clients/yaba-psychiatric-1-600x172.webp";
 
-  return (
-    <section id="clients" className="clients">
-      <div className="container" data-aos="zoom-out">
-        <div className="clients-slider swiper">
-          <div className="swiper-wrapper align-items-center">
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-1.png"
-                className="img-fluid"
-                alt=""
-              />
+const clientLogos = [
+  { name: "Access Bank", src: accessBank },
+  { name: "CWG", src: cwg },
+  { name: "Cummins", src: cummins },
+  { name: "FBNQuest", src: fbNquest },
+  { name: "Lagos State", src: lagosState },
+  { name: "National Safety Council", src: nationalSafetyCouncil },
+  { name: "Yaba Psychiatric Hospital", src: yabaPsychiatric },
+];
+
+const Clients = () => (
+  <section className="clients-trust" aria-labelledby="clients-trust-title">
+    <div className="container">
+      <div className="clients-trust__intro">
+        <p className="clients-trust__eyebrow">Trusted partnerships</p>
+        <h2 id="clients-trust-title">
+          Trusted to bring our clients’ most important projects to life
+        </h2>
+        <p>Their satisfaction is how we measure our success.</p>
+      </div>
+
+      <div className="clients-marquee" aria-label="Our clients">
+        <div className="clients-marquee__track">
+          {[0, 1].map((copy) => (
+            <div
+              className="clients-marquee__group"
+              key={copy}
+              aria-hidden={copy === 1 ? "true" : undefined}
+            >
+              {clientLogos.map((client) => (
+                <div className="clients-marquee__logo" key={client.name}>
+                  <img src={client.src} alt={copy === 0 ? client.name : ""} />
+                </div>
+              ))}
             </div>
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-2.png"
-                className="img-fluid"
-                alt=""
-              />
-            </div>
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-3.png"
-                className="img-fluid"
-                alt=""
-              />
-            </div>
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-4.png"
-                className="img-fluid"
-                alt=""
-              />
-            </div>
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-5.png"
-                className="img-fluid"
-                alt=""
-              />
-            </div>
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-6.png"
-                className="img-fluid"
-                alt=""
-              />
-            </div>
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-7.png"
-                className="img-fluid"
-                alt=""
-              />
-            </div>
-            <div className="swiper-slide">
-              <img
-                src="assets/img/clients/client-8.png"
-                className="img-fluid"
-                alt=""
-              />
-            </div>
-            
-          </div>
+          ))}
         </div>
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
-export default Clients
+export default Clients;

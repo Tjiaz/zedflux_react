@@ -1,0 +1,118 @@
+.clients-trust {
+  overflow: hidden;
+  padding: 72px 0 76px;
+  background: #f7f9fc;
+}
+
+.clients-trust__intro {
+  max-width: 760px;
+  margin: 0 auto 38px;
+  text-align: center;
+}
+
+.clients-trust__eyebrow {
+  margin: 0 0 10px;
+  color: #174d90;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.clients-trust__intro h2 {
+  margin: 0 auto 12px;
+  color: #172b4d;
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.clients-trust__intro > p:last-child {
+  margin: 0;
+  color: #66758a;
+  font-size: 16px;
+}
+
+.clients-marquee {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
+
+.clients-marquee__track,
+.clients-marquee__group {
+  display: flex;
+  width: max-content;
+}
+
+.clients-marquee__track {
+  animation: clients-marquee-scroll 34s linear infinite;
+}
+
+.clients-marquee:hover .clients-marquee__track,
+.clients-marquee:focus-within .clients-marquee__track {
+  animation-play-state: paused;
+}
+
+.clients-marquee__group {
+  flex: 0 0 auto;
+  align-items: center;
+  gap: clamp(40px, 6vw, 88px);
+  padding-right: clamp(40px, 6vw, 88px);
+}
+
+.clients-marquee__logo {
+  display: grid;
+  flex: 0 0 174px;
+  height: 68px;
+  place-items: center;
+}
+
+.clients-marquee__logo img {
+  display: block;
+  max-width: 100%;
+  max-height: 58px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+@keyframes clients-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 576px) {
+  .clients-trust {
+    padding: 54px 0 58px;
+  }
+
+  .clients-trust__intro {
+    margin-bottom: 28px;
+  }
+
+  .clients-trust__intro > p:last-child {
+    font-size: 14px;
+  }
+
+  .clients-marquee__logo {
+    flex-basis: 140px;
+    height: 58px;
+  }
+
+  .clients-marquee__logo img {
+    max-height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clients-marquee__track {
+    animation: none;
+  }
+
+  .clients-marquee__group[aria-hidden="true"] {
+    display: none;
+  }
+}

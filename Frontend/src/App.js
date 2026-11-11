@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import About from "./About";
 
 import Hero from "./Hero";
+import Clients from "./Clients";
 import Navbar from "./Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Services from "./Services";
@@ -44,6 +45,7 @@ const Home = () => (
 
     <Porfolio />
 
+    <Clients />
     <RecentBlog />
     <Contact />
   </>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { NavLink } from "react-router-dom";
 
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -6,23 +6,6 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./index.css";
 
 const About = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = useRef(null);
-
-  const handlePlay = () => {
-    setIsPlaying(true);
-    setTimeout(() => {
-      videoRef.current && videoRef.current.play();
-    }, 100); // Ensure video is rendered before play
-  };
-
-  const handleVideoEnd = () => {
-    setIsPlaying(false);
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-    }
-  };
-
   return (
     <section id="about" className="about">
       <div className="container" data-aos="fade-up">
@@ -46,75 +29,32 @@ const About = () => {
             </p>
           </div>
           <div className="col-lg-6">
-            <div className="content ps-0 ps-lg-5">
-              <div className="position-relative mt-4">
-                {!isPlaying && (
-                  <>
-                    <img
-                      src="assets/img/about-3.png"
-                      className="img-fluid rounded-4"
-                      alt="About Us"
-                      style={{ width: "100%", display: "block" }}
-                    />
-                    <button
-                      onClick={handlePlay}
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        background: "rgba(0,0,0,0.5)",
-                        border: "none",
-                        borderRadius: "50%",
-                        width: "64px",
-                        height: "64px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        zIndex: 3,
-                      }}
-                    >
-                      <i
-                        className="bi bi-play-fill"
-                        style={{ fontSize: "2rem", color: "#fff" }}
-                      ></i>
-                    </button>
-                  </>
-                )}
-                {/* Show video when playing */}
-                {isPlaying && (
-                  <div
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      paddingBottom: "56.25%", // 16:9 aspect ratio (for 1920x1080)
-                      borderRadius: "12px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <video
-                      ref={videoRef}
-                      controls
-                      autoPlay
-                      onEnded={handleVideoEnd}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        zIndex: 2,
-                        background: "#000",
-                      }}
-                    >
-                      <source src="assets/img/zedcc...mp4" type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  </div>
-                )}
+            <div className="about-metrics" aria-label="Our impact">
+              <div className="about-metrics__item">
+                <i className="bi bi-kanban" aria-hidden="true" />
+                <div>
+                  <strong>43</strong>
+                  <span>Projects</span>
+                </div>
+              </div>
+              <div className="about-metrics__item">
+                <i className="bi bi-phone" aria-hidden="true" />
+                <div>
+                  <strong>49</strong>
+                  <span>Apps Deployed</span>
+                </div>
+              </div>
+              <div className="about-metrics__item">
+                <i className="bi bi-people" aria-hidden="true" />
+                <div>
+                  <strong>59</strong>
+                  <span>Satisfied Clients</span>
+                </div>
+              </div>
+            </div>
 
+            <div className="content ps-0 ps-lg-5">
+              <div className="mt-4">
                 <NavLink
                   to="/about"
                   className="btn"
